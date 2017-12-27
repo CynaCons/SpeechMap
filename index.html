@@ -1,72 +1,311 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="utf-8"/>
+	<meta charset="utf-8"/>
 	<script type="text/javascript" src="https://rawgit.com/jgraph/mxgraph/master/javascript/mxClient.js"></script>
 	<script type="text/javascript" src="https://rawgit.com/vkiryukhin/vkBeautify/master/vkbeautify.js"></script>
+	<style type="text/css">
+	body
+	{
+		background-color:#FFFFFF;width:100%;
+	}
+	#button_editor_addSaveNode
+	{
+		position:absolute;right:5%;
+	}
+	#editorContainer
+	{
+		width:350px;
+		background-color:rgb(230, 227, 227);
+		position:fixed;
+		top:75px;
+		height: calc(100% - 75px);
+		display: table-cell;
+		left: 0;
+	}
+	#editorContainer_container
+	{
+		position: relative;
+		width:100%;
+		height: 100%;
+	}
+	#editor
+	{
+		width: 100%;
+		height: 35%;
+	}
+	#textarea_editor_nodeContent
+	{
+		width:100%;
+		height:90%;
+		resize:none;
+		left:0;
+		box-sizing: border-box;
+		border: none;
+	}
+	#button_editor_addSaveNode
+	{
+		width: 100%;
+		position: sticky;
+	}
+	#div_editor_nodeContentContainer
+	{
+		width: 100%;
+		height: 65%;
+	}
+	#graphContainer
+	{
+		height:100%;
+		width: 1185px;
+		float:left;
+		background-color:rgba(243, 10, 10, 0.158);
+		cursor:default;
+		position:fixed;
+		top:75px;
+		left:350px;
+		overflow-y:scroll;
+	}
+	#header 
+	{
+		width:100%;
+		height:75px;
+		position:fixed;
+		top:0;
+		left:0;
+		background-color:#227ce4;
+	}
+	#header_actionBar
+	{
+		background-color:rgb(201, 201, 201);
+		position:absolute;
+		bottom:0;
+		width:100%;
+		height:25px;
+		
+	}
+	.button_header_actionBar
+	{
+		width:25px;
+		height:25px;
+	}
+	#init_overlay
+	{
+		display: none;
+		position: fixed;
+		left: 20%;
+		width: 60%;
+		top: 20%;
+		height: 60%;
+		background: #FFF;
+		z-index: 20;
+	}
+	#mask
+	{
+		position:fixed;
+		top:0;
+		left:0;
+		background:rgba(0,0,0,0.6);
+		z-index:10;
+		width:100%;
+		height:100%;
+		display:none;
+	}	
+	#init_overlay:target, #init_overlay:target + #mask
+	{
+		display:block;
+		opacity:1;
+	}
+	.close
+	{ 
+		display:block;
+		position:absolute;
+		top:-20px;
+		right:-20px;
+		background:red;
+		color:white;
+		height:40px;
+		width:40px;
+		line-height:40px;
+		font-size:35px;
+		text-decoration:none;
+		text-align:center;
+		font-weight:bold;
+		border-radius:40px;
+	}
+	#a_showOverlay
+	{
+		display:none;
+	}
+	#div_overlay_main
+	{
+		width:100%;
+		height:80%;
+		position:relative;
+		top:0;
+		left:0;
+		background-color: #FFFFFF;
+	}
+	#div_overlay_main_newMap
+	{
+		background-color: #E0FFFF;
+		position:relative;
+		float:left;
+		left:5%;
+		width:40%;
+		height:80%;
+		top:10%;
+		border-radius: 2px;
+	}
+	#div_overlay_main_newMap p
+	{
+		margin:0;
+		position:absolute;
+		top:50%;
+		left:50%;
+		transform: translate(-50%, -50%);
+	}
+	#div_overlay_main_loadMap
+	{
+		background-color: #FFFFE0;
+		position:relative;
+		float:right;
+		right:5%;
+		width:40%;
+		height:80%;
+		top:10%;
+		border-radius:2px;
+	}
+	#div_overlay_main_loadMap p
+	{
+		margin:0;
+		position:absolute;
+		top:50%;
+		left:50%;
+		transform: translate(-50%, -50%);
+	}
+	#button_overlay_loadMap
+	{
+		position:absolute;
+		bottom:0;
+		left:30%;
+		width:40%;
+		display:none;
+	}
+	#div_overlay_bottom
+	{
+		background-color: #FFFFFF;
+		width:100%;
+		height:20%;
+		position:relative;
+	}
+	#button_overlay_bottom_confirm
+	{
+		width:40%;
+		height:50%;
+		position:absolute;
+		top:25%;
+		left:30%;
+	}
+	</style>
 </head>
-<body onload="main(document.getElementById('graphContainer'))" style="background-color:#FFFFFF;width:100%;">
+<body onload="main(document.getElementById('graphContainer'))" >
+
+	<!-- Create a container for the overlay of the the mask behind it -->
+	<div id="init_overlay">
+	    <a href="#" class="close" id="button_closeOverlay">&times;</a>
+		<div id="div_overlay_main">
+			<div id="div_overlay_main_newMap">
+				<p>NEW MAP</p>
+			</div>
+			<div id="div_overlay_main_loadMap">
+				<p>LOAD MAP</p>
+				<input type="file" id="button_overlay_loadMap">
+			</div>
+		</div>
+		<div id="div_overlay_bottom">
+			<input type="button" id="button_overlay_bottom_confirm" value="Confirm">
+		</div>
+	</div>
+	<div id="mask"></div>
 
 	<!-- Create a div container for the header -->
-	<div id="header" style="width:100%;height:10%;position:fixed;top:0;left:0;background-color:#FFFFFF">
+	<div id="header">
+		<div id="header_actionBar">
+			<input type="button" id="button_actionBar_bold" class="button_header_actionBar" value="B">
+			<input type="button" id="button_actionBar_italic" class="button_header_actionBar" value="I">
+			<input type="button" id="button_actionBar_underligned" class="button_header_actionBar" value="U">
+		</div>
 			<input type="button" id="button_addNode_HerrA" value="Add Node Herr A">
 			<input type="button" id="button_addNode_HerrB" value="Add Node Herr B">
 		
 			<input type="button" id="button_clear" value="Clear">
-			<input type="button" id="button_xmlString" value="XML String">	</div>
+			<input type="button" id="button_xmlString" value="XML String">		
+			<a href="#init_overlay" id="a_showOverlay">Open Overlay</a>
 
+	</div>
+	
 	<!-- Create a container for the editor -->
-	<div id="editorContainer" style="width:19%;height:80%;float:left;background-color:#FFFFFF;position:fixed;top:10%;left:0;padding:5px; border-style: solid; border-width:1px;">
-			Speaker Name:<br>
-			<input type="text" id="input_editor_newSpeaker" name="speaker_name">
-			<input type="button"  id="button_editor_newSpeaker" value="Register new speaker"><br>
-			<br>
-			Registered Speaker<br>
-			<select id="select_editor_registeredSpeaker"> 
-				<option value="Herr A">Herr A</option>
-				<option value="Herr B">Herr B</option>
-			</select><br>
-			Side<br>
-			<form>
-				<input type="radio" id="radio_editor_auto" name="side" value="Left">Auto
-				<input type="radio" id="radio_editor_left" name="side" value="Left" disabled=true>Left
-				<input type="radio" id="radio_editor_right" name="side" value="Right" disabled=true>Right
-			</form><br>
-			
-			<!-- TODO Remove this old tag-->
-			<!--<input type="text" id="input_editor_nodeContent" name="node_content" style="height:40%;width:95%">-->
-			<textarea id="textarea_editor_nodeContent" style="height:40%;width:95%;resize:none;"></textarea>
-			<br>
-			<input type="button" id="button_editor_addNode" value="Add" style="position:absolute;right:5%;">
-			<br/>
-
-
-		<br>
-
+	<div id="editorContainer">
+		<div id="editorContainer_container">
+			<div id="editor">
+				Speaker Name:<br>
+				<input type="text" id="input_editor_newSpeaker" name="speaker_name">
+				 <input type="button"  id="button_editor_newSpeaker" value="Register new speaker"><br>
+				<br>
+				Speaker<br>
+				<select id="select_editor_speaker"> 
+				</select><br>
+				Side<br>
+				<form>
+					<input type="radio" id="radio_editor_left" name="side" value="Left" checked=true>Left
+					<input type="radio" id="radio_editor_right" name="side" value="Right">Right
+				</form><br>
+			</div>
+			<div id="div_editor_nodeContentContainer">
+				<input type="button" id="button_editor_addSaveNode" value="Add">
+				<textarea id="textarea_editor_nodeContent"></textarea>
+			</div>
+		</div>
 	</div>
 
 	<!-- Creates a container for the graph with a grid wallpaper -->
-	<div id="graphContainer"
-		style="width:80%;height:100%;float:left;background-color:#FFFFFF;cursor:default;position:fixed;top:10%;left:20%;overflow-y:scroll;">
+	<div id="graphContainer">
 	</div>
 <script>
 //SpeechMap library
 
+// TODOList
 
-// TODO Editor
+// TODO -- Add "New Speaker" option in the Speaker select of the editor
+// TODO -- Add the side to the metadata of the Nodes in the XML Export. Add compatibily during the loading of a map.
+// DONE -- Add synchronisation mechanisme between the Speaker select and the corresponding model element (sm.metadata.speaker_namesList)
+// DONE -- Add buttons in the header 
+// TODO -- Add callbacks to the buttons which modify the currently selected text (by adding <> around it)
+// TODO -- Rework the position and size of the html elements to use fixed numbers of pixels
 
-
+/**
+ * NodeCategoryEnum Enum. Defines the different types of Node that can exist.
+ */
 var NodeCategoryEnum = {
 		DEFAULT: 0,
 		START: 1,
 		END: 2,
 };
 
-function Node_Metadata(speaker)
+/*************************************************************************************
+ *	Node_Metadata Class
+ *	Contains all the metadata about a specific Node(or vertex) of the map.
+ *************************************************************************************/
+function Node_Metadata(speaker, side)
 {
 	this.speaker = speaker;
+	this.side = side;
 }
 
+/*************************************************************************************
+ *	Node Class
+ *	Contains all the data about a specific vertex (or node) of the map.
+ *************************************************************************************/
 function Node(category, content)
 {
 	this.category = category;
@@ -80,15 +319,32 @@ function Node(category, content)
 	this.metadata = null;
 };
 
-function SpeechMap_Metadata()
-{
+Node.prototype.getSide = function() {
+	return this.metadata.side;
+}
+
+/*************************************************************************************
+ *	SpeechMap_Metadata Class
+ *	Contains all the Metadata of one SpeechMap
+ *************************************************************************************/
+ 
+ /**
+  * Constructor. Create the list of registered speakers that will be filled by SpeechMap or other entities.
+  */
+function SpeechMap_Metadata() {
 	this.speaker_namesList = [];
 }
 
-
+/*************************************************************************************
+ *	SpeechMap Class 
+ *	This is the base class of the Application. 
+ *************************************************************************************/
+ 
+/**
+ * Constructor. This will create the Map (model, controller and it's renderer/view)
+ * @param XMLDocument xmlDoc Value null means that the default map will be created, otherwise the map is created based on the data in the xml document.
+ */
 function SpeechMap(xmlDoc){
-	// Constructor
-	
 	/* CONSTANTS (initialized with default values) */
 	this.RENDER_X_OFFSET = 400;
 	this.RENDER_TREE_GAP = 50;
@@ -99,130 +355,79 @@ function SpeechMap(xmlDoc){
 	this.RENDER_META_SIZE = 30;
 	this.RENDER_META_GAP = this.RENDER_VERTEX_MIN_HEIGHT;
 	
-	
-	/* Build the metadata stuff for the SpeechMap */
-	this.metadata = new SpeechMap_Metadata;
-	var sm_node = xmlDoc.getElementsByTagName("SpeechMap")[0];
-	var sm_metadata = sm_node.getElementsByTagName("metadata")[0];
-	var speaker_nodeList = [].slice.call(sm_metadata.getElementsByTagName("speaker"));
-	for ( var i in speaker_nodeList) {
-		var tmp = speaker_nodeList[i].firstChild.nodeValue.trim();
-		console.log("Detected speaker entity :" + tmp);
-		this.metadata.speaker_namesList.push(tmp);
+	if (xmlDoc == null) {
+		console.log("Creating the default map");
+		this.metadata = new SpeechMap_Metadata();
+		
+		this.nodesNumber = 2; // Start node and End node
+		this.nodesList = [this.nodesNumber];
+		
+		// Create the Start node
+		this.nodesList[0] = new Node(NodeCategoryEnum.START, null);
+		this.nodesList[1] = new Node(NodeCategoryEnum.END, null);
+	} else { // Meaning (xmlDoc != null)
+		/* Build the metadata stuff for the SpeechMap */
+		this.metadata = new SpeechMap_Metadata;
+		var sm_node = xmlDoc.getElementsByTagName("SpeechMap")[0];
+		var sm_metadata = sm_node.getElementsByTagName("metadata")[0];
+		var speaker_nodeList = [].slice.call(sm_metadata.getElementsByTagName("speaker"));
+		for ( var i in speaker_nodeList) {
+			var tmp = speaker_nodeList[i].firstChild.nodeValue.trim();
+			console.log("Detected speaker entity :" + tmp);
+			this.metadata.speaker_namesList.push(tmp);
+		}
+		
+		this.nodesNumber = xmlDoc.getElementsByTagName("node").length;
+		this.nodesList = [this.nodesNumber];		
+		
+		// Loop over the content nodes to create the node model
+		for (var i = 0; i < this.nodesNumber; i++){
+			var node =  xmlDoc.getElementsByTagName("node")[i];
+			var content = node.getElementsByTagName("content")[0].firstChild;
+			
+			// Determine the category for the current node
+			var nodeCategory = null;
+			if (node.attributes[0].nodeValue === "start"){
+				nodeCategory = NodeCategoryEnum.START;
+			}else if ( node.attributes[0].nodeValue === "end"){
+				nodeCategory = NodeCategoryEnum.END;
+			}else{
+				nodeCategory = NodeCategoryEnum.DEFAULT;
+			}
+			
+			// Create Node objects
+			if (content){
+				this.nodesList[i] = new Node(nodeCategory, content.nodeValue.trim());
+			}else{
+				// If no content, set value to null
+				this.nodesList[i] = new Node(nodeCategory, null);
+			}
+			
+			
+			/* Fill the metadata for the current Node */
+			var metadata = node.getElementsByTagName("metadata")[0];
+			var nodeSide = metadata.getAttribute("side");
+			var meta_speaker = metadata.getAttribute("speaker");
+			if (meta_speaker && nodeSide){
+				this.nodesList[i].metadata = new Node_Metadata(meta_speaker, nodeSide);
+			}
+		}
 	}
 	
-	this.nodesNumber = xmlDoc.getElementsByTagName("node").length;
-	this.nodesList = [this.nodesNumber];
+	/* Booleans stored in the SpeechMap object */
+	this.nodeSelected_b = false;
 	
 	
-	// TODO Add a case where the xmlDoc is null which then required creating a default map with only start and end vertices
+	/* Instanciate a SpeechMap_Editor class */
+	this.editor = new SpeechMap_Editor(this.metadata.speaker_namesList);
 	
+	/* Instanciate a SpeechMap_GraphController class */
+	this.graphController = new SpeechMap_GraphController();
 	
-	// Loop over the content nodes to create the node model
-	for (var i = 0; i < this.nodesNumber; i++){
-		var node =  xmlDoc.getElementsByTagName("node")[i];
-		var content = node.getElementsByTagName("content")[0].firstChild;
-		
-		// Determine the category for the current node
-		var nodeCategory = null;
-		if (node.attributes[0].nodeValue === "start"){
-			nodeCategory = NodeCategoryEnum.START;
-		}else if ( node.attributes[0].nodeValue === "end"){
-			nodeCategory = NodeCategoryEnum.END;
-		}else{
-			nodeCategory = NodeCategoryEnum.DEFAULT;
-		}
-		
-		// Create Node objects
-		if (content){
-			this.nodesList[i] = new Node(nodeCategory, content.nodeValue.trim());
-		}else{
-			// If no content, set value to null
-			this.nodesList[i] = new Node(nodeCategory, null);
-		}
-		
-		
-		/* Fill the metadata for the current Node */
-		var metadata = node.getElementsByTagName("metadata")[0];
-		var meta_speaker = metadata.getAttribute("speaker");
-		if (meta_speaker){
-			this.nodesList[i].metadata = new Node_Metadata(meta_speaker);
-		}
-	}
-	
-		/* Add styles */
-
-	var style = new Object();
-	style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_RECTANGLE;
-	style[mxConstants.STYLE_OPACITY] = 100;
-	style[mxConstants.STYLE_FILLCOLOR]= '#FFFFFF';
-	style[mxConstants.STYLE_FONTCOLOR]= '#000000';
-	style[mxConstants.STYLE_SPACING]= 5;
-	style[mxConstants.STYLE_ROUNDED] = false;
-	graph.getStylesheet().putCellStyle('style_content_default', style);
-	delete style;
+	/* Instanciate a SpeechMap_Renderer class */
+	this.renderer = new SpeechMap_Renderer();
 
 
-	var style = new Object();
-	style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_RECTANGLE;
-	style[mxConstants.STYLE_OPACITY] = 50;
-	style[mxConstants.STYLE_FILLCOLOR]= '#FFFFFF';
-	style[mxConstants.STYLE_FONTCOLOR]= '#000000';
-	style[mxConstants.STYLE_SPACING]= 5;
-	style[mxConstants.STYLE_ROUNDED] = false;
-	graph.getStylesheet().putCellStyle('style_content_speaker_1', style);
-	delete style;
-	
-	var style = new Object();
-	style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_RECTANGLE;
-	style[mxConstants.STYLE_OPACITY] = 50;
-	style[mxConstants.STYLE_FILLCOLOR]= '#FFFFFF';
-	style[mxConstants.STYLE_FONTCOLOR]= '#000000';
-	style[mxConstants.STYLE_SPACING]= 5;
-	style[mxConstants.STYLE_ROUNDED] = false;
-	graph.getStylesheet().putCellStyle('style_content_speaker_2', style);
-	delete style;
-		
-	var style = new Object();
-	style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_RECTANGLE;
-	style[mxConstants.STYLE_OPACITY] = 50;
-	style[mxConstants.STYLE_FILLCOLOR]= '#4CAF50';
-	style[mxConstants.STYLE_ROUNDED] = true;
-	graph.getStylesheet().putCellStyle('style_meta_speaker_1', style);
-	delete style;
-	
-	var style = new Object();
-	style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_RECTANGLE;
-	style[mxConstants.STYLE_OPACITY] = 50;
-	style[mxConstants.STYLE_FILLCOLOR]= '#FF0000';
-	style[mxConstants.STYLE_ROUNDED] = true;
-	graph.getStylesheet().putCellStyle('style_meta_speaker_2', style);
-	delete style;
-	
-	
-	var style = new Object();
-	style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_RECTANGLE;
-	style[mxConstants.STYLE_OPACITY] = 50;
-	style[mxConstants.STYLE_FILLCOLOR]= '#FFFFFF';
-	style[mxConstants.STYLE_FONTCOLOR]= '#000000';
-	style[mxConstants.STYLE_ROUNDED] = false;
-	graph.getStylesheet().putCellStyle('style_meta_start', style);
-	delete style;
-	
-	var style = new Object();
-	style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_RECTANGLE;
-	style[mxConstants.STYLE_OPACITY] = 50;
-	style[mxConstants.STYLE_FILLCOLOR]= '#FFFFFF';
-	style[mxConstants.STYLE_FONTCOLOR]= '#000000';
-	style[mxConstants.STYLE_ROUNDED] = false;
-	graph.getStylesheet().putCellStyle('style_meta_end', style);
-	delete style;
-	
-	
-	var style = new Object();
-	style[mxConstants.STYLE_DASHED] = true;
-	graph.getStylesheet().putCellStyle("style_edge", style);
-	delete style;
 	
 };
 	
@@ -289,6 +494,7 @@ SpeechMap.prototype.serializeToXML = function() {
 			var metaNode = xmlDoc.createElement("metadata");
 			if (node.metadata){
 				metaNode.setAttribute("speaker", node.metadata.speaker);
+				metaNode.setAttribute("side", node.metadata.side);
 			}
 			tmpNode.appendChild(metaNode);
 		
@@ -324,136 +530,17 @@ SpeechMap.prototype.saveContentToFile = function(content) {
 }
 	
 SpeechMap.prototype.makeGraph = function(graph, parent){
-
-	// Update vertex width based on the current width of the graphContainer
-	this.RENDER_VERTEX_WIDTH = (graph.container.offsetWidth / 10) *3;
-	this.RENDER_X_OFFSET = (graph.container.offsetWidth / 2);
-
-	
-	// Clear the graph
-	this.clearMap(graph);
-
-	// Make the graph automatically resize the container and add a border
-	graph.resizeContainer = false;
-	graph.setAutoSizeCells(true);
-	graph.setBorder(graph.container.offsetWidth / 10 / 2); /* Usefull at the bottom of the graph */
-	
-	graph.setHtmlLabels(true);
-
-
-	//Adds cells to the model in a single step
-	graph.getModel().beginUpdate();
-	try {	
-		for (var i in this.nodesList){
-			var y_metaCoord = 10 + i*(this.RENDER_META_SIZE + this.RENDER_META_GAP);
-			var y_vertexCoord = y_metaCoord - (this.RENDER_VERTEX_MIN_HEIGHT / 2)+ (this.RENDER_META_SIZE / 2);
-			var node = this.nodesList[i];
-			
-			// Add the vertex
-			if(node.content){
-			
-				/* First the content vertex */
-				// If content is associated to the first registered speaker
-				if (node.metadata.speaker === this.metadata.speaker_namesList[0]){
-					node.vertex = graph.insertVertex(
-							parent, null, node.content, this.RENDER_X_OFFSET + this.RENDER_TREE_GAP + this.RENDER_META_SIZE, y_vertexCoord, 80, 30, 
-							"style_content_speaker_1;whiteSpace=wrap;overflow=hidden;"
-						);
-						
-					/* Then the metadata vertex linked to the tree (timeline) */
-					node.vertex_treeNode = graph.insertVertex(
-							parent, null, node.metadata.speaker, this.RENDER_X_OFFSET, y_metaCoord, 30, 30,
-							"style_meta_speaker_1"
-						);
-				} else {
-					node.vertex = graph.insertVertex(
-							parent, null, node.content, this.RENDER_X_OFFSET - this.RENDER_TREE_GAP + this.RENDER_META_SIZE, y_vertexCoord, 80, 30,
-							"style_content_speaker_2;whiteSpace=wrap;overflow=hidden;"
-						);
-						
-					/* Then the metadata vertex linked to the tree (timeline) */
-					node.vertex_treeNode = graph.insertVertex(
-							parent, null, node.metadata.speaker, this.RENDER_X_OFFSET, y_metaCoord, 30, 30,
-							"style_meta_speaker_2"
-						);
-				}
-				
-			}else{
-				if (node.category === NodeCategoryEnum.START){
-					node.vertex = graph.insertVertex(parent, null, "S", this.RENDER_X_OFFSET, y_metaCoord, 30,30, "style_meta_start");
-				}else if( node.category === NodeCategoryEnum.END){
-					node.vertex = graph.insertVertex(parent, null, "E", this.RENDER_X_OFFSET, y_metaCoord, 30,30, "style_meta_end");
-				}
-			}
-			
-			// Add link with previous vertex if it exists
-			if (i > 0){
-				previousNode = this.nodesList[i-1];
-				
-				// Special cases for "start" and "end" nodes
-				if ( i == 1){
-					var edge = graph.insertEdge(parent, null, "", previousNode.vertex, node.vertex_treeNode,"endArrow=None");
-					var tree_edge = graph.insertEdge(parent, null, "", node.vertex_treeNode, node.vertex, "style_edge;endArrow=None");
-
-				}else if (i == this.nodesList.length - 1){
-					var edge = graph.insertEdge(parent, null, "", previousNode.vertex_treeNode, node.vertex, "endArrow=None");
-				}else{
-					var edge = graph.insertEdge(parent, null, "", previousNode.vertex_treeNode, node.vertex_treeNode, "endArrow=None");
-					var tree_edge = graph.insertEdge(parent, null, "", node.vertex_treeNode, node.vertex, "style_edge;endArrow=None");
-					
-					// Add tree_edge to the edge list of the node
-					node.edgesList.push(tree_edge);
-				}
-				previousNode.edgesList.push(edge);
-				node.edgesList.push(edge);
-			}
-			
-			
-			/* Update the cells height and location (for the left side cells) */
-			if ( i != 0 && (i != this.nodesList.length - 1)){
-				graph.updateCellSize(node.vertex);
-				var geometry = node.vertex.getGeometry();
-				geometry.height = this.RENDER_VERTEX_MIN_HEIGHT;
-				geometry.width = this.RENDER_VERTEX_WIDTH;
-				
-				
-				/* Fix the position of the nodes on the left side */
-				// If the node content is associated to the second speaker (meaning on the left side)
-				if (node.metadata.speaker === this.metadata.speaker_namesList[1]){
-					var current_width = geometry.width;
-					geometry.x = this.RENDER_X_OFFSET - this.RENDER_TREE_GAP - current_width;
-				}
-				
-				// TODO The 5 below should be made a constant (max number of lines in a vertex)
-				var style = graph.getCellStyle(node.vertex);
-				var fontSize = style[mxConstants.STYLE_FONTSIZE] || mxConstants.DEFAULT_FONTSIZE;
-				var max = geometry.width * 5 / (fontSize * 0.625);
-
-				if (max < node.vertex.value.length)
-				{
-					node.isLabelTruncated = true;
-					node.vertex.value = node.vertex.value.substring(0,max) + "...";
-				} else {
-					console.log("DEBUG -- Negative case found");
-				}
-			}
-		}
-	}
-	finally
-	{
-		// Updates the display
-		graph.fit();
-		graph.getModel().endUpdate();
-	}
+	// Make the renderer object render the graph based on the current nodes and metadata.
+	this.renderer.render(graph, parent, this.nodesList, this.metadata);	
 };
 
-SpeechMap.prototype.addNode = function (category, content, speaker){
+SpeechMap.prototype.addNode = function (category, content, speaker, side){
 
 	// Move the "end" node at the end of the list
 	var endNode  = this.nodesList.pop();
 
 	this.nodesList.push(new Node(category, content.trim()));
-	this.nodesList[this.nodesList.length - 1].metadata = new Node_Metadata(speaker);
+	this.nodesList[this.nodesList.length - 1].metadata = new Node_Metadata(speaker, side);
 	
 	this.nodesList.push(endNode);
 };
@@ -465,8 +552,7 @@ SpeechMap.prototype.clearMap = function(graph){
 	graph.getModel().endUpdate();
 }
 
-SpeechMap.prototype.isContentVertex = function(cell)
-{
+SpeechMap.prototype.isContentVertex = function(cell) {
 	var retBool = false;
 	
 	for (var i in this.nodesList){
@@ -484,8 +570,7 @@ SpeechMap.prototype.isContentVertex = function(cell)
 	return retBool;
 }
 
-SpeechMap.prototype.isMetaVertex = function(cell)
-{
+SpeechMap.prototype.isMetaVertex = function(cell) {
 	var retBool = false;
 	
 	for (var i in this.nodesList){
@@ -500,8 +585,7 @@ SpeechMap.prototype.isMetaVertex = function(cell)
 	return retBool;
 }
 
-SpeechMap.prototype.isVertexLabelTruncated = function(cell)
-{
+SpeechMap.prototype.isVertexLabelTruncated = function(cell) {
 	var retBool = false;
 
 	for (var i in this.nodesList)
@@ -521,8 +605,7 @@ SpeechMap.prototype.isVertexLabelTruncated = function(cell)
 }
 
 // TODO There are two returns here..
-SpeechMap.prototype.getMatchingNode = function(cell)
-{
+SpeechMap.prototype.getMatchingNode = function(cell) {
 	for (var i in this.nodesList)
 	{
 		if (this.nodesList[i].vertex === cell)
@@ -534,8 +617,7 @@ SpeechMap.prototype.getMatchingNode = function(cell)
 	return null;
 }
 
-SpeechMap.prototype.isCellVertexExtender = function(cell)
-{
+SpeechMap.prototype.isCellVertexExtender = function(cell) {
 	var retval_b = false;
 
 	for (var i in this.nodesList)
@@ -543,14 +625,27 @@ SpeechMap.prototype.isCellVertexExtender = function(cell)
 		if (this.nodesList[i].vertex_extender === cell)
 		{
 			retval_b =  true
+			break;
 		}
 	}
 	
 	return retval_b;
 }
 
-SpeechMap.prototype.getNodeFromVertexExtender = function(cell)
-{
+SpeechMap.prototype.isCellVertexExtension = function(cell) {
+	var retval_b = false;
+	
+	for (var i in this.nodesList) {
+		if (this.nodesList[i].vertex_extension === cell){
+			retval_b = true;
+			break;
+		}
+	}
+	
+	return retval_b;
+}
+
+SpeechMap.prototype.getNodeFromVertexExtender = function(cell) {
 	var retval = null;
 	for (var i in this.nodesList)
 	{
@@ -563,6 +658,728 @@ SpeechMap.prototype.getNodeFromVertexExtender = function(cell)
 	
 	return retval;
 }
+
+SpeechMap.prototype.getNodeFromVertexExtension = function(cell) {
+	var retval = null;
+	
+	for (var i in this.nodesList) {
+		if (this.nodesList[i].vertex_extension === cell) {
+			retval = this.nodesList[i];
+			break;
+		}
+	}
+	
+	return retval;
+}
+
+SpeechMap.prototype.setNodeSelected = function(selectedNode) {
+	this.nodeSelected_b = true;
+	this.currentSelectedNode = selectedNode;
+	
+	// Change the text of the Editor button from Add to Update
+	$("button_editor_addSaveNode").value = "Update";
+}
+
+SpeechMap.prototype.unsetNodeSelected = function() {
+	this.nodeSelected_b = false;
+	this.editor.clearTextArea();
+	$("button_editor_addSaveNode").value = "Add";
+
+}
+
+SpeechMap.prototype.getNodeSelected = function() {
+	return this.currentSelectedNode;
+}
+
+SpeechMap.prototype.isNodeSelected = function() {
+	return this.nodeSelected_b;
+}
+/*************************************************************************************
+ *	SpeechMap_Editor Class 
+ *	Contains all the Javascript related to the editor on the left side of the page
+ *************************************************************************************/
+ 
+ /**
+  * Constructor. Will register callback functions for the editor's html elements. Will also add to the editor the registered speakers from the loaded map
+  * @param IN StringList speakerList The list of regsitered speakers from the loaded map. Can be empty. Names will be strings.
+  */
+ SpeechMap_Editor = function (speakerList) {
+	console.log("SpeechmapEditorConstructor");
+	
+	// Add the registered speakers from the loader map to the editor
+	if (speakerList) {
+		for (var i in speakerList) {
+			var name = speakerList[i];
+			console.log("Adding the following name to the Editor: " + name);
+			var select = $("select_editor_speaker");
+			var new_option = document.createElement("option");
+			new_option.value = name;
+			new_option.innerHTML = name;
+			select.appendChild(new_option);
+		}
+	}
+	
+	// Add onclick callback to the "Register New Speaker" of the Editor
+	document.getElementById("button_editor_newSpeaker").onclick = function() {
+		console.log("Button New Speaker");
+		var input_field = document.getElementById("input_editor_newSpeaker");
+		var value = input_field.value;
+		console.log("Field value: " +value);
+		if (value !== ""){
+			var select = document.getElementById("select_editor_speaker");
+			var new_option = document.createElement("option");
+			new_option.value = input_field.value;
+			new_option.innerHTML = input_field.value;
+			select.appendChild(new_option);
+		}
+		
+		// Add the new Speaker to the model
+		sm.metadata.speaker_namesList.push(value);
+
+		input_field.value = "";
+	}
+
+	// Add callback to the "Add/Save" button of the Editor
+	$("button_editor_addSaveNode").onclick = function() {
+		var input_field = document.getElementById("textarea_editor_nodeContent");
+		var value = input_field.value;
+		
+		// If no Node is currently selected, the button functionality is to "Add" a node
+		if (sm.isNodeSelected() === false) {
+			if (value !== "") {
+				var radio_sideChoice = "";
+				if (document.getElementById("radio_editor_right").checked){
+					radio_sideChoice = "right";
+				}else if (document.getElementById("radio_editor_left").checked){
+					radio_sideChoice = "left";
+				}
+				console.log("Current radio choice: " + radio_sideChoice);
+
+				var select = document.getElementById("select_editor_speaker");
+				select_value = select.value;
+				console.log("Current select value: " + select_value);
+
+
+				console.log("Field value: " + value);
+				if (radio_sideChoice !== ""){
+					sm.addNode(NodeCategoryEnum.DEFAULT, value, select_value, radio_sideChoice);
+				} else {
+					console.log("ERROR -- No side defined whent trying to add a new Node");
+				}
+				sm.makeGraph(graph, parent);			
+			}
+		}
+		// If a Node is currently selected, the button functionality is to "Update" the selected node
+		else {
+			var selectedNode = sm.getNodeSelected();
+			selectedNode.content = $("textarea_editor_nodeContent").value;
+			selectedNode.metadata.speaker = $("select_editor_speaker").value;
+			if ($("radio_editor_left").checked === true){
+				selectedNode.metadata.side = "left";
+			} else {
+				selectedNode.metadata.side = "right";
+			}
+			
+			sm.makeGraph(graph, parent);
+		}
+	}
+	
+	// Add onchange callback to the Textarea of the Editor
+	$("textarea_editor_nodeContent").onchange = function() {
+		console.log("DEBUG::textare_editor::onchange -- Updated text");
+	}
+
+	// Callback for the "Bold" button of the ActionBar
+	$("button_actionBar_bold").onclick = function() {
+		var textArea = $("textarea_editor_nodeContent");
+
+		var len = textArea.value.length;
+		var start = textArea.selectionStart;
+		var end = textArea.selectionEnd;
+		var currentSelection = textArea.value.substring(start, end);
+
+		var newText = "<b>" + currentSelection + "</b>"
+
+		textArea.value = textArea.value.substring(0, start)
+						+ newText + textArea.value.substring(end, len);
+	}
+
+		// Callback for the "Italic" button of the ActionBar
+		$("button_actionBar_italic").onclick = function() {
+		var textArea = $("textarea_editor_nodeContent");
+
+		var len = textArea.value.length;
+		var start = textArea.selectionStart;
+		var end = textArea.selectionEnd;
+		var currentSelection = textArea.value.substring(start, end);
+
+		var newText = "<i>" + currentSelection + "</i>"
+
+		textArea.value = textArea.value.substring(0, start)
+						+ newText + textArea.value.substring(end, len);
+	}
+
+		// Callback for the "Underligned" button of the ActionBar
+		$("button_actionBar_underligned").onclick = function() {
+		var textArea = $("textarea_editor_nodeContent");
+
+		var len = textArea.value.length;
+		var start = textArea.selectionStart;
+		var end = textArea.selectionEnd;
+		var currentSelection = textArea.value.substring(start, end);
+
+		var newText = "<u>" + currentSelection + "</u>"
+
+		textArea.value = textArea.value.substring(0, start)
+						+ newText + textArea.value.substring(end, len);
+	}
+ }
+ 
+SpeechMap_Editor.prototype.setTextArea = function(newContent){
+	// Get the text area and update it's value
+	$("textarea_editor_nodeContent").value = newContent;
+}
+
+SpeechMap_Editor.prototype.clearTextArea = function() {
+	// Get the text area html element and remove it's content 
+	$("textarea_editor_nodeContent").value = "";
+}
+
+SpeechMap_Editor.prototype.setSpeaker = function(newSpeaker) {
+	$("select_editor_speaker").value = newSpeaker;
+}
+
+SpeechMap_Editor.prototype.setSide = function(newSide) {
+	if (newSide === "left"){
+		$("radio_editor_left").checked = true;
+		$("radio_editor_right").checked = false;
+	} else if (newSide === "right") {
+		$("radio_editor_right").checked = true;
+		$("radio_editor_left").checked = false;
+	}
+}
+ 
+/*************************************************************************************
+ *	SpeechMap_GraphController Class 
+ *	Contains all the callback functions associated with events on the Graph 
+ *  Events could be mouseMove, mouseOver or click etc
+ *************************************************************************************/
+ 
+ /**
+  * Constructor. Takes no parameters. Will register callback functions for the editor's html elements
+  */
+ SpeechMap_GraphController = function () {
+	console.log("SpeechMap_GraphController constructor");
+	
+	/* Add mxCellMarker */
+	var marker = new mxCellMarker(graph);
+	var g_metaShow = false;
+	var g_lastCell; // TODO Should probably be renamed into something like g_mouseClick_metaExtension
+	var g_mouseMove_onCell_b = false;
+	var g_mouveMove_lastNode = null;
+	
+	var g_mouseClick_vertexExtension_show_b = false; // True is the vertex extension is beeing showm
+	var g_mouseClick_vertexExtension = null;
+	
+	var g_mouseClick_nodeSelected_lastCell = null;
+	
+	//TODO Remove the code here and put it in SpeechMap functions (rename sm into this, make the globals g_* into class attributes)
+	graph.addMouseListener({
+		mouseDown: function(graph, me) {
+			// Retrieve the cell where click was made.
+			var cell = marker.getCell(me);
+			
+			// Remove the meta popup when clicking aside it.
+			if (g_metaShow === true){
+				if (cell !== g_lastCell){
+					g_metaShow = false;
+					graph.removeCells([g_lastCell]);
+				}
+			}
+			
+			// Remove the Vertex Extension when clicking aside of it
+			if (g_mouseClick_vertexExtension_show_b)
+			{
+				if (cell !== g_mouseClick_vertexExtension)
+				{
+					g_mouseClick_vertexExtension_show_b = null;
+					graph.removeCells([g_mouseClick_vertexExtension]);
+				}
+			}
+			// Remove the "node selected" attribute of the SpeechMap when clicking aside of it
+			if (g_mouseClick_nodeSelected_lastCell) {
+				if (cell != g_mouseClick_nodeSelected_lastCell) {
+					g_mouseClick_nodeSelected_lastCell = null;
+					sm.unsetNodeSelected();
+				}
+			}
+			
+			// Check if the clicked cell is either a content vertex or a meta vertex
+			if (cell && cell.isVertex ) {
+			
+				/* Click on a VertexExtender */
+				if (sm.isCellVertexExtender(cell))
+				{
+				
+					if (!g_mouseClick_vertexExtension_show_b)
+					{
+						g_mouseClick_vertexExtension_show_b = true;
+						//console.log("Extending the base vertex");
+						
+						// Get the Node that is being extended
+						var node = sm.getNodeFromVertexExtender(cell);
+						if (node)
+						{
+							// Extend the Vertex based on its content
+							var geometry = cell.getGeometry();
+							var style = graph.getCellStyle(node.vertex);
+							var fontSize = style[mxConstants.STYLE_FONTSIZE] || mxConstants.DEFAULT_FONTSIZE;
+							var lineSize = (geometry.width) / (fontSize * 0.625);
+							var estimated_lineNumber = node.content.length / lineSize;
+
+
+							// Take into consideration the number of "\n" in the input string
+							var newline_count = 0;
+							var str = node.content;
+							for (var position = 0; position < str.length; position++){
+								if (str.charAt(position) == '\n'){
+									newline_count += 1;
+								}
+							}
+							estimated_lineNumber += newline_count;
+							
+							// Update the geometry variable to use the geometry from the base vertex
+							geometry = node.vertex.getGeometry();
+							node.vertex_extension = graph.insertVertex(
+									parent, null, 
+									node.content, 
+									geometry.x, geometry.y, 
+									geometry.width, estimated_lineNumber * fontSize + 20,
+									"whiteSpace=wrap;overflow=hidden;style_content_default;"
+								);
+								
+							g_mouseClick_vertexExtension = node.vertex_extension;
+							
+							// Set the selection to the newly created node
+							marker.markCell(node.vertex_extension);
+							// Unset and clear the textArea from the Editor
+							sm.unsetNodeSelected();
+							sm.setNodeSelected(node);
+							//Load the selected Node content and metadata into the editor
+							sm.editor.setTextArea(node.content);
+							sm.editor.setSpeaker(node.metadata.speaker);
+							sm.editor.setSide(node.metadata.side);							g_mouseClick_nodeSelected_lastCell = cell; /* Save the current cell to know when a click will be outside of it */
+	
+						}
+					}
+						
+						// Setup mechanism so that one click outside would remove the extension
+				}
+				/* Click on a Node */
+				else if (sm.isContentVertex(cell)){
+					// console.log("Content vertex clicked");
+
+					var node = sm.getMatchingNode(cell);
+					sm.setNodeSelected(node);
+					g_mouseClick_nodeSelected_lastCell = cell; /* Save the current cell to know when a click will be outside of it */
+					
+					//Load the selected Node content and metadata into the editor
+					sm.editor.setTextArea(node.content);
+					sm.editor.setSpeaker(node.metadata.speaker);
+					sm.editor.setSide(node.metadata.side);
+					
+					/* Click on a Node that could be extended */
+					if (graph.isLabelClipped(cell) && sm.isVertexLabelTruncated(cell)){
+						console.log("Clicked on a vertex that needs to be extended");
+					}
+				}
+				// Click on the extension of a vertex
+				else if (sm.isCellVertexExtension(cell)) {
+				
+					var node = sm.getNodeFromVertexExtension(cell);
+
+					sm.unsetNodeSelected();
+					sm.setNodeSelected(node);
+				
+					//Load the selected Node content and metadata into the editor
+					sm.editor.setTextArea(node.content);
+					sm.editor.setSpeaker(node.metadata.speaker);
+					sm.editor.setSide(node.metadata.side);
+				}
+				/* Click on a MetaVertex */
+				else if (sm.isMetaVertex(cell)){
+					console.log("Meta vertex clicked");
+					if (!g_metaShow){
+						g_metaShow = true;
+						var geo = cell.getGeometry();
+						// TODO Clean the scale factor (use a global or something constant)
+						var x_popupCoord = geo.x + (geo.width / 2) - (geo.width * 5 / 2);
+						var y_popupCoord = geo.y + (geo.height / 2) - (geo.height * 5 / 2);
+						g_lastCell = graph.insertVertex(parent, null, "", x_popupCoord, y_popupCoord, geo.width * 5, geo.height * 5);	
+						// TODO Set the current selection to the g_lastCell instead of the cell that was clicked
+					}
+				}
+			}
+			
+		},
+		mouseMove: function(graph, me){
+			var cell = marker.getCell(me);
+			var mouseMove_onCell_previous_b = g_mouseMove_onCell_b;
+		
+			// TODO Remove, only used for tracing purposes
+			if (cell && sm.isCellVertexExtender(cell))
+			{
+				//console.log("Cell is a vertex_extender");
+			}
+			
+			if (cell && cell.isVertex())
+			{
+				if (sm.isContentVertex(cell) && sm.isVertexLabelTruncated(cell))
+				{
+					var node = sm.getMatchingNode(cell);
+					if (node)
+					{
+						g_mouseMove_onCell_b = true; // We are on a content cell
+
+						// Check to detect when the mouse enters the content cell
+						if (!mouseMove_onCell_previous_b) // Previous move, we were not on a content cell 
+						{
+							var vertexGeo = node.vertex.getGeometry();
+							node.vertex_extender = graph.insertVertex(
+									parent, null, "Extend",
+									vertexGeo.x , 
+									vertexGeo.y + vertexGeo.height - 20, 
+									vertexGeo.width,20
+								);
+								
+							g_mouveMove_lastNode = node;
+							//console.log("Addind a vertex_extender cell");
+						}
+					}
+				} else {
+					if (!sm.isCellVertexExtender(cell))
+					{
+						g_mouseMove_onCell_b = false;
+					}
+				}
+			} else {
+				g_mouseMove_onCell_b = false;
+			}
+			
+			if (!g_mouseMove_onCell_b && mouseMove_onCell_previous_b)
+			{
+				graph.removeCells([g_mouveMove_lastNode.vertex_extender]);
+				//console.log("Removing the vertex_extender cell");
+			}
+		},
+		mouseUp: function(){}
+	});
+ }
+ 
+/*************************************************************************************
+ *	SpeechMap_Renderer Class 
+ *  Handles the rendering of the map in the graph container
+ *************************************************************************************/
+ 
+/**
+ * Constructor. Defines constants and styles used during the rendering.
+ */
+SpeechMap_Renderer = function () {
+	console.log("SpeechMap_Renderer constructor");
+	
+	/* CONSTANTS (initialized with default values) */
+	this.RENDER_X_OFFSET = 400;
+	this.RENDER_TREE_GAP = 50;
+
+	this.RENDER_VERTEX_MIN_HEIGHT = 4 * 11 + 10 + 10;
+	this.RENDER_VERTEX_WIDTH = 150;
+	
+	this.RENDER_META_SIZE = 30;
+	this.RENDER_META_GAP = this.RENDER_VERTEX_MIN_HEIGHT;
+	
+		/* Add styles */
+	var style = new Object();
+	style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_RECTANGLE;
+	style[mxConstants.STYLE_OPACITY] = 100;
+	style[mxConstants.STYLE_FILLCOLOR]= '#FFFFFF';
+	style[mxConstants.STYLE_FONTCOLOR]= '#000000';
+	style[mxConstants.STYLE_SPACING]= 5;
+	style[mxConstants.STYLE_ROUNDED] = false;
+	graph.getStylesheet().putCellStyle('style_content_default', style);
+	delete style;
+
+	var style = new Object();
+	style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_RECTANGLE;
+	style[mxConstants.STYLE_OPACITY] = 50;
+	style[mxConstants.STYLE_FILLCOLOR]= '#FFFFFF';
+	style[mxConstants.STYLE_FONTCOLOR]= '#000000';
+	style[mxConstants.STYLE_SPACING]= 5;
+	style[mxConstants.STYLE_ROUNDED] = false;
+	graph.getStylesheet().putCellStyle('style_content_speaker_1', style);
+	delete style;
+	
+	var style = new Object();
+	style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_RECTANGLE;
+	style[mxConstants.STYLE_OPACITY] = 50;
+	style[mxConstants.STYLE_FILLCOLOR]= '#FFFFFF';
+	style[mxConstants.STYLE_FONTCOLOR]= '#000000';
+	style[mxConstants.STYLE_SPACING]= 5;
+	style[mxConstants.STYLE_ROUNDED] = false;
+	graph.getStylesheet().putCellStyle('style_content_speaker_2', style);
+	delete style;
+		
+	var style = new Object();
+	style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_RECTANGLE;
+	style[mxConstants.STYLE_OPACITY] = 50;
+	style[mxConstants.STYLE_FILLCOLOR]= '#4CAF50';
+	style[mxConstants.STYLE_ROUNDED] = true;
+	graph.getStylesheet().putCellStyle('style_meta_speaker_1', style);
+	delete style;
+	
+	var style = new Object();
+	style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_RECTANGLE;
+	style[mxConstants.STYLE_OPACITY] = 50;
+	style[mxConstants.STYLE_FILLCOLOR]= '#FF0000';
+	style[mxConstants.STYLE_ROUNDED] = true;
+	graph.getStylesheet().putCellStyle('style_meta_speaker_2', style);
+	delete style;
+	
+	
+	var style = new Object();
+	style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_RECTANGLE;
+	style[mxConstants.STYLE_OPACITY] = 50;
+	style[mxConstants.STYLE_FILLCOLOR]= '#FFFFFF';
+	style[mxConstants.STYLE_FONTCOLOR]= '#000000';
+	style[mxConstants.STYLE_ROUNDED] = false;
+	graph.getStylesheet().putCellStyle('style_meta_start', style);
+	delete style;
+	
+	var style = new Object();
+	style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_RECTANGLE;
+	style[mxConstants.STYLE_OPACITY] = 50;
+	style[mxConstants.STYLE_FILLCOLOR]= '#FFFFFF';
+	style[mxConstants.STYLE_FONTCOLOR]= '#000000';
+	style[mxConstants.STYLE_ROUNDED] = false;
+	graph.getStylesheet().putCellStyle('style_meta_end', style);
+	delete style;
+	
+	
+	var style = new Object();
+	style[mxConstants.STYLE_DASHED] = true;
+	graph.getStylesheet().putCellStyle("style_edge", style);
+	delete style;
+}
+ 
+SpeechMap_Renderer.prototype.render = function(graph, parent, nodesList, metadata) {
+	console.log("Inside the render function");
+	
+	this.RENDER_VERTEX_WIDTH = (graph.container.offsetWidth / 10) *3;
+	this.RENDER_X_OFFSET = (graph.container.offsetWidth / 2);
+
+	
+	// Clear the graph
+	this.clearMap(graph);
+
+	// Make the graph automatically resize the container and add a border
+	graph.resizeContainer = false;
+	graph.setAutoSizeCells(true);
+	graph.setBorder(graph.container.offsetWidth / 10 / 2); /* Usefull at the bottom of the graph */
+	
+	graph.setHtmlLabels(true);
+
+
+	//Adds cells to the model in a single step
+	graph.getModel().beginUpdate();
+	try {	
+		for (var i in nodesList){
+			var y_metaCoord = 10 + i*(this.RENDER_META_SIZE + this.RENDER_META_GAP);
+			var y_vertexCoord = y_metaCoord - (this.RENDER_VERTEX_MIN_HEIGHT / 2)+ (this.RENDER_META_SIZE / 2);
+			var node = nodesList[i];
+			
+			// Add the vertex
+			if(node.content){
+				
+				// node.getSide should always be different from null for a content node
+				var nodeSide = node.getSide();
+				
+				/* Add a node to the appropriate side of the map */
+				if (nodeSide === "right"){
+					node.vertex = graph.insertVertex(
+								parent, null, node.content, this.RENDER_X_OFFSET + this.RENDER_TREE_GAP + this.RENDER_META_SIZE, y_vertexCoord, 80, 30, 
+								"style_content_speaker_1;whiteSpace=wrap;overflow=hidden;"
+							);
+							
+						/* Then the metadata vertex linked to the tree (timeline) */
+						node.vertex_treeNode = graph.insertVertex(
+								parent, null, node.metadata.speaker, this.RENDER_X_OFFSET, y_metaCoord, 30, 30,
+								"style_meta_speaker_1"
+							);
+				} else if (nodeSide === "left"){
+					node.vertex = graph.insertVertex(
+								parent, null, node.content,  this.RENDER_X_OFFSET - this.RENDER_TREE_GAP - this.RENDER_VERTEX_WIDTH, y_vertexCoord, 80, 30,
+								"style_content_speaker_2;whiteSpace=wrap;overflow=hidden;"
+							);
+							
+						/* Then the metadata vertex linked to the tree (timeline) */
+						node.vertex_treeNode = graph.insertVertex(
+								parent, null, node.metadata.speaker, this.RENDER_X_OFFSET, y_metaCoord, 30, 30,
+								"style_meta_speaker_2"
+							);
+				}
+				
+			}else{
+				if (node.category === NodeCategoryEnum.START){
+					node.vertex = graph.insertVertex(parent, null, "S", this.RENDER_X_OFFSET, y_metaCoord, 30,30, "style_meta_start");
+				}else if( node.category === NodeCategoryEnum.END){
+					node.vertex = graph.insertVertex(parent, null, "E", this.RENDER_X_OFFSET, y_metaCoord, 30,30, "style_meta_end");
+				}
+			}
+			
+			// Add link with previous vertex if it exists
+			if (i > 0){
+				previousNode = nodesList[i-1];
+				
+				// Special cases for "start" and "end" nodes
+				if ( i == 1){
+					var edge = graph.insertEdge(parent, null, "", previousNode.vertex, node.vertex_treeNode,"endArrow=None");
+					var tree_edge = graph.insertEdge(parent, null, "", node.vertex_treeNode, node.vertex, "style_edge;endArrow=None");
+
+				}else if (i == nodesList.length - 1){
+					var edge = graph.insertEdge(parent, null, "", previousNode.vertex_treeNode, node.vertex, "endArrow=None");
+				}else{
+					var edge = graph.insertEdge(parent, null, "", previousNode.vertex_treeNode, node.vertex_treeNode, "endArrow=None");
+					var tree_edge = graph.insertEdge(parent, null, "", node.vertex_treeNode, node.vertex, "style_edge;endArrow=None");
+					
+					// Add tree_edge to the edge list of the node
+					node.edgesList.push(tree_edge);
+				}
+				previousNode.edgesList.push(edge);
+				node.edgesList.push(edge);
+			}
+			
+			
+			/* Update the cells height and location (for the left side cells) */
+			if ( i != 0 && (i != nodesList.length - 1)){
+				graph.updateCellSize(node.vertex);
+				var geometry = node.vertex.getGeometry();
+				geometry.height = this.RENDER_VERTEX_MIN_HEIGHT;
+				geometry.width = this.RENDER_VERTEX_WIDTH;
+				
+				// TODO The 5 below should be made a constant (max number of lines in a vertex)
+				var style = graph.getCellStyle(node.vertex);
+				var fontSize = style[mxConstants.STYLE_FONTSIZE] || mxConstants.DEFAULT_FONTSIZE;
+				var max = geometry.width * 5 / (fontSize * 0.625);
+
+				if (max < node.vertex.value.length)
+				{
+					node.isLabelTruncated = true;
+					node.vertex.value = node.vertex.value.substring(0,max) + "...";
+				} else {
+					// The cell content's does not need to be truncated
+				}
+			}
+		}
+	}
+	finally
+	{
+		// Updates the display
+		graph.fit();
+		graph.getModel().endUpdate();
+	}
+}
+
+SpeechMap_Renderer.prototype.clearMap = function(graph){
+	graph.getModel().beginUpdate();
+	graph.removeCells(graph.getModel().getChildVertices(parent));
+	graph.getModel().endUpdate();
+}
+
+/*************************************************************************************
+ *	SpeechMapInitializer Class 
+ *	Handles the intial overlay and can return the xmlDoc to be used to create a SpeechMap
+ *  Also handles the event callbacks for the overlay HTML elements
+ *************************************************************************************/
+ 
+/**
+ * Constructor.  Will register callback functions for the overlay's html elements and create the xmlDoc based on the user choices
+ */
+SpeechMapInitializer = function (initCompleteCallbackFunction) {
+	/** OVERLAY RELATED JAVASCRIPT */
+	
+	this.currentSelection = "";
+	this.sm = sm;
+	this.initCompleteCallbackFunction = initCompleteCallbackFunction
+	
+	// Simulate a click on the "show overlay" button
+	$("a_showOverlay").click();
+	
+	// Callback when clicking on the "New Map" div
+	$("div_overlay_main_newMap").onclick = function() {
+		console.log("New Map selected");
+		this.currentSelection = "NEW_MAP";
+		
+		//Set the effects for the current selection and clean it for the other choice
+		$("div_overlay_main_newMap").style.boxShadow = "0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23)";
+		$("div_overlay_main_loadMap").style.boxShadow = "";
+	}.bind(this);
+
+	// Callback when clicking on the "Load Map" div
+	$("div_overlay_main_loadMap").onclick = function() {
+		console.log("Load Map selected");
+		this.currentSelection = "LOAD_MAP";
+		
+		//Set the effects for the current selection and clean it for the other choice
+		$("div_overlay_main_loadMap").style.boxShadow = "0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23)";
+		$("div_overlay_main_newMap").style.boxShadow = "";
+	}.bind(this);
+	
+	// Callback for the "Confirm" button of the overlay
+	$("button_overlay_bottom_confirm").onclick = function() {
+		console.log("Clicked on the confirm button");
+		
+		// If NEW_MAP, then create the default map
+		if (this.currentSelection === "NEW_MAP") {
+			this.sm = new SpeechMap(null);
+			this.initCompleteCallbackFunction();
+			//console.log(this.sm.serializeToConsole());
+			//this.sm.makeGraph(graph, parent);
+		}
+		// Else if LOAD_MAP, get a file from the user, make a XMLDocument from it and create the according map
+		else if (this.currentSelection === "LOAD_MAP") {
+			// Nested events below
+			var button_loadMap = $("button_overlay_loadMap");
+			
+			// 1 - Function called when the "LoadMap" button has been clicked (click is simulated below, button is not displayed)
+			button_loadMap.onchange = function() {
+				// 3 - Retrieve the file that was uploaded by the user and instanciate a FileReader object				
+				var file = $("button_overlay_loadMap").files[0];
+				var fileReader = new FileReader();
+				// 4 - Function called once reading the file is complete
+				fileReader.onload = function(fileContent) {
+					// 6 - Parse the file that was uploaded a make a SpeechMap from it
+					// TODO Add checks to assert that the uploaded document is indeed an xml file
+					var parser = new DOMParser();
+					var xmlDoc = parser.parseFromString(fileReader.result, "text/xml");
+					this.sm = new SpeechMap(xmlDoc);
+					this.initCompleteCallbackFunction();
+					//console.log(this.sm.serializeToConsole());
+					//this.sm.makeGraph(graph, parent);
+				}.bind(this);
+				// 5 - Start reading the file that was uploaded
+				fileReader.readAsText(file);
+			}.bind(this);
+			
+			// 2 - Simulate a click on the "Load Map" button for the user to pick a file from his filesystem
+			button_loadMap.click(); 
+		}			
+		// Hide the overlay
+		document.location = "#";
+	}.bind(this);
+}
+
+SpeechMapInitializer.prototype.getSM = function() {
+	return this.sm;
+}
 </script>
 
 
@@ -571,293 +1388,68 @@ SpeechMap.prototype.getNodeFromVertexExtender = function(cell)
 var graph = null;
 var parent = null;
 var sm = null;
+var smi = null;
 
-	function main(container){
+/** Convenient utility function */
+$ = function(id) {
+			return document.getElementById(id);
+}
+
+/** Main function executed once the page is loaded */
+function main(container){
+
+	var loremString = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris rutrum imperdiet lorem, a eleifend tellus efficitur non. Suspendisse rutrum molestie auctor. Proin eget sem pellentesque, posuere ligula vestibulum, auctor ipsum. Nullam eu elementum tellus. Sed ullamcorper in turpis ut porta. Vivamus tincidunt ex vitae velit pretium tempor. Duis commodo quis lorem pharetra ornare. Cras nunc felis, maximus sed est at, mollis porttitor enim. Aliquam interdum imperdiet rutrum. Nulla gravida consectetur libero elementum auctor. Integer id vestibulum neque, ut feugiat dolor. Maecenas blandit lacus ut euismod consectetur. Ut ac vestibulum leo. Donec ac lacus sed nunc facilisis consequat in eu risus. Nullam tempor sed nunc ut aliquet. Vivamus a pulvinar just";
+
+	/* Callback function that will be called once the overlay/init is complete. This function will retrieve the SpeechMap instance created by the SMI instance */
+	var smi_initCompleteCallback = function() {
+		sm = smi.getSM();
+		sm.serializeToConsole();
+		sm.makeGraph(graph, parent);
+	}
+	smi = new SpeechMapInitializer(smi_initCompleteCallback);
+
+	// Add callback to the button
+	$("button_addNode_HerrA").onclick = function() {
+		console.log("Button Click");
+		
+		sm.addNode(NodeCategoryEnum.DEFAULT, loremString, "Herr A", "right");
+		sm.makeGraph(graph, parent);
+	}
 	
-		var loremString = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris rutrum imperdiet lorem, a eleifend tellus efficitur non. Suspendisse rutrum molestie auctor. Proin eget sem pellentesque, posuere ligula vestibulum, auctor ipsum. Nullam eu elementum tellus. Sed ullamcorper in turpis ut porta. Vivamus tincidunt ex vitae velit pretium tempor. Duis commodo quis lorem pharetra ornare. Cras nunc felis, maximus sed est at, mollis porttitor enim. Aliquam interdum imperdiet rutrum. Nulla gravida consectetur libero elementum auctor. Integer id vestibulum neque, ut feugiat dolor. Maecenas blandit lacus ut euismod consectetur. Ut ac vestibulum leo. Donec ac lacus sed nunc facilisis consequat in eu risus. Nullam tempor sed nunc ut aliquet. Vivamus a pulvinar just";
-
-		// Add callback to the button
-		document.getElementById("button_addNode_HerrA").onclick = function() {
-			console.log("Button Click");
-			
-			sm.addNode(NodeCategoryEnum.DEFAULT, loremString, "Herr A");
-			sm.makeGraph(graph, parent);
-		}
+	// Add callback to the button
+	$("button_addNode_HerrB").onclick = function() {
+		console.log("Button Click");
 		
-		// Add callback to the button
-		document.getElementById("button_addNode_HerrB").onclick = function() {
-			console.log("Button Click");
-			
-			sm.addNode(NodeCategoryEnum.DEFAULT, loremString, "Herr B");
-			sm.makeGraph(graph, parent);
-		}
-		
-		// Add callback to the "Clear" button
-		document.getElementById("button_clear").onclick = function() {
-			console.log("Button Clear Click");
-			
-			sm.clearMap(graph,parent);
-		}
-		
-		// Add callback to the "XML String" button
-		document.getElementById("button_xmlString").onclick = function() {
-			console.log("Button XML String");
-			
-			sm.serializeToXML();
-		}
-		
-		
-		/*******************************
-		 * Callbacks for the Editor
-		 *******************************/
-		// Add callback to the "Register New Speaker" of the Editor
-		document.getElementById("button_editor_newSpeaker").onclick = function() {
-			console.log("Button New Speaker");
-			var input_field = document.getElementById("input_editor_newSpeaker");
-			var value = input_field.value;
-			console.log("Field value: " +value);
-			if (value !== ""){
-				var select = document.getElementById("select_editor_registeredSpeaker");
-				var new_option = document.createElement("option");
-				new_option.value = input_field.value;
-				new_option.innerHTML = input_field.value;
-				select.appendChild(new_option);
-			}
-			
-			input_field.value = "";
-		}
-
-		// Add callback to the "Add" button of the Editor
-		document.getElementById("button_editor_addNode").onclick = function() {
-			var input_field = document.getElementById("textarea_editor_nodeContent");
-			var value = input_field.value;
-			if (value !== "") {
-
-				var radio_choice = "auto";
-				if (document.getElementById("radio_editor_right").checked){
-					radio_choice = "right";
-				}else if (document.getElementById("radio_editor_left").checked){
-					radio_choice = "left";
-				}
-				console.log("Current radio choice: " + radio_choice);
-
-				var select = document.getElementById("select_editor_registeredSpeaker");
-				select_value = select.value;
-				console.log("Current select value: " + select_value);
-
-
-				console.log("Field value: " + value);
-				if (radio_choice == "auto"){
-					sm.addNode(NodeCategoryEnum.DEFAULT, value, select_value);
-				}
-				sm.makeGraph(graph, parent);			
-			}
-		}		
-		
-		
-		/*******************************
-		 * Init of the mxGraph for the SpeechMap
-		 *******************************/
-		// Init the mxGraph
-		graph = new mxGraph(container);
-		
-		// Gets the default parent for inserting new cells. This
-		// is normally the first child of the root (ie. layer 0).
-		parent = graph.getDefaultParent();
-		
-		
-		
+		sm.addNode(NodeCategoryEnum.DEFAULT, loremString, "Herr B", "left");
+		sm.makeGraph(graph, parent);
+	}
 	
+	// Add callback to the "Clear" button
+	$("button_clear").onclick = function() {
+		console.log("Button Clear Click");
+		
+		sm.clearMap(graph,parent);
+	}
 	
+	// Add callback to the "XML String" button
+	$("button_xmlString").onclick = function() {
+		console.log("Button XML String");
+		
+		sm.serializeToXML();
+	}
+
+
+	/*******************************
+	 * Init of the mxGraph for the SpeechMap
+	 *******************************/
+	// Init the mxGraph
+	graph = new mxGraph(container);
 	
-		// Loads the xml file
-		var xhttp = new XMLHttpRequest();
-		xhttp.onreadystatechange = function() {
-			if (this.readyState == 4 && this.status == 200) {
-				myFunction(this);
-			}
-		};
-		xhttp.open("GET", "map.xml", true);
-		xhttp.send();
-
-		// Function called once the xml document is loaded
-		function myFunction(xml) {
-			var xmlDoc = xml.responseXML;
-			
-			sm = new SpeechMap(xmlDoc);
-			console.log(sm.serializeToConsole());
-			
-			sm.makeGraph(graph, parent);
-
-		};
-		
-		
-		/* Add mxCellMarker */
-		var marker = new mxCellMarker(graph);
-		var g_metaShow = false;
-		var g_lastCell; // TODO Should probably be renamed into something like g_mouseClick_metaExtension
-		var g_mouseMove_onCell_b = false;
-		var g_mouveMove_lastNode = null;
-		
-		var g_mouseClick_vertexExtension_show_b = false; // True is the vertex extension is beeing showm
-		var g_mouseClick_vertexExtension = null;
-		
-		//TODO Remove the code here and put it in SpeechMap functions (rename sm into this, make the globals g_* into class attributes)
-		graph.addMouseListener({
-			mouseDown: function(graph, me) {
-				// Retrieve the cell where click was made.
-				var cell = marker.getCell(me);
-				
-				// Remove the meta popup when clicking aside it.
-				if (g_metaShow === true){
-					if (cell !== g_lastCell){
-						g_metaShow = false;
-						graph.removeCells([g_lastCell]);
-					}
-				}
-				
-				// Remove the Vertex Extension when clicking aside of it
-				if (g_mouseClick_vertexExtension_show_b)
-				{
-					if (cell !== g_mouseClick_vertexExtension)
-					{
-						g_mouseClick_vertexExtension_show_b = false;
-						graph.removeCells([g_mouseClick_vertexExtension]);
-					}
-				}
-				
-				
-				// Check if the clicked cell is either a content vertex or a meta vertex
-				if (cell && cell.isVertex ) {
-				
-					/* Click on a VertexExtender */
-					if (sm.isCellVertexExtender(cell))
-					{
-					
-						if (!g_mouseClick_vertexExtension_show_b)
-						{
-							g_mouseClick_vertexExtension_show_b = true;
-							console.log("Extending the base vertex");
-							
-							// Get the Node that is being extended
-							var node = sm.getNodeFromVertexExtender(cell);
-							if (node)
-							{
-								// Extend the Vertex based on its content
-								var geometry = cell.getGeometry();
-								var style = graph.getCellStyle(node.vertex);
-								var fontSize = style[mxConstants.STYLE_FONTSIZE] || mxConstants.DEFAULT_FONTSIZE;
-								var lineSize = (geometry.width) / (fontSize * 0.625);
-								var estimated_lineNumber = node.content.length / lineSize;
-
-
-								// Take into consideration the number of "\n" in the input string
-								var newline_count = 0;
-								var str = node.content;
-								for (var position = 0; position < str.length; position++){
-									if (str.charAt(position) == '\n'){
-										newline_count += 1;
-									}
-								}
-								estimated_lineNumber += newline_count;
-								
-								// Update the geometry variable to use the geometry from the base vertex
-								geometry = node.vertex.getGeometry();
-								node.vertex_extension = graph.insertVertex(
-										parent, null, 
-										node.content, 
-										geometry.x, geometry.y, 
-										geometry.width, estimated_lineNumber * fontSize + 20,
-										"whiteSpace=wrap;overflow=hidden;style_content_default;"
-									);
-									
-								g_mouseClick_vertexExtension = node.vertex_extension;
-									
-							}
-						}
-							
-							// Setup mechanism so that one click outside would remove the extension
-					}
-					/* Click on a Vertex that could be extended */
-					else if (sm.isContentVertex(cell)){
-						console.log("Content vertex clicked");
-						if (graph.isLabelClipped(cell)){
-							if (sm.isVertexLabelTruncated(cell))
-							{
-								console.log("Clicked on a vertex that needs to be extended");
-							}
-						}
-					}
-					/* Click on a MetaVertex */
-					else if (sm.isMetaVertex(cell)){
-						console.log("Meta vertex clicked");
-						if (!g_metaShow){
-							g_metaShow = true;
-							var geo = cell.getGeometry();
-							// TODO Clean the scale factor (use a global or something constant)
-							var x_popupCoord = geo.x + (geo.width / 2) - (geo.width * 5 / 2);
-							var y_popupCoord = geo.y + (geo.height / 2) - (geo.height * 5 / 2);
-							g_lastCell = graph.insertVertex(parent, null, "", x_popupCoord, y_popupCoord, geo.width * 5, geo.height * 5);	
-							// TODO Set the current selection to the g_lastCell instead of the cell that was clicked
-						}
-					}
-				}
-				
-			},
-			mouseMove: function(graph, me){
-				var cell = marker.getCell(me);
-				var mouseMove_onCell_previous_b = g_mouseMove_onCell_b;
-			
-				// TODO Remove, only used for tracing purposes
-				if (cell && sm.isCellVertexExtender(cell))
-				{
-					console.log("Cell is a vertex_extender");
-				}
-				
-				if (cell && cell.isVertex())
-				{
-					if (sm.isContentVertex(cell) && sm.isVertexLabelTruncated(cell))
-					{
-						var node = sm.getMatchingNode(cell);
-						if (node)
-						{
-							g_mouseMove_onCell_b = true; // We are on a content cell
-
-							// Check to detect when the mouse enters the content cell
-							if (!mouseMove_onCell_previous_b) // Previous move, we were not on a content cell 
-							{
-								var vertexGeo = node.vertex.getGeometry();
-								node.vertex_extender = graph.insertVertex(
-										parent, null, "Extend",
-										vertexGeo.x , 
-										vertexGeo.y + vertexGeo.height - 20, 
-										vertexGeo.width,20
-									);
-									
-								g_mouveMove_lastNode = node;
-								console.log("Addind a vertex_extender cell");
-							}
-						}
-					} else {
-						if (!sm.isCellVertexExtender(cell))
-						{
-							g_mouseMove_onCell_b = false;
-						}
-					}
-				} else {
-					g_mouseMove_onCell_b = false;
-				}
-				
-				if (!g_mouseMove_onCell_b && mouseMove_onCell_previous_b)
-				{
-					graph.removeCells([g_mouveMove_lastNode.vertex_extender]);
-					console.log("Removing the vertex_extender cell");
-				}
-			},
-			mouseUp: function(){}
-		});
-	};
-
+	// Gets the default parent for inserting new cells. This
+	// is normally the first child of the root (ie. layer 0).
+	parent = graph.getDefaultParent();
+	
+};
 </script>
 
 </body>
