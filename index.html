@@ -47,16 +47,20 @@
 		border: none;
 		background-color: #94c082;
 	}
-	.editor_tabs_button
+	.editor_tabs_button, .editor_tabs_button_active
 	{
 		width: 50px;
 		height: 50px;
-		background-color: #546e4a;
+		background-color: #e0e0e0;
 		border: none;
 	}
 	.editor_tabs_button:hover
 	{
-		background-color: #7abe80;
+		background-color: #a0a0a0;
+	}
+	.editor_tabs_button_active
+	{
+		background-color: #a0a0a0
 	}
 	#editor
 	{
@@ -893,23 +897,45 @@ SpeechMap.prototype.isNodeSelected = function() {
 	}
 
 	/** 
-	 *	EDITOR TABS
+	 *	EDITOR TABS 
 	 */
+	// Add callback functions to the buttons to make them switch tabs
 
-	 // Set the callback functions for the buttons to change tabs. 
-	 // Each function will call a third one and give it the targetTab and the button that was clicked
+	 // This dict will contain the match betwen the buttons and the associated tabs
+	var match_dict = [];
 
-	 $("editorContainer_tabsContainer_content").onclick = (function() {
-			this.handleTabSwitch("editorContainer_tabsContainer_content" , "editorContainer_container_tabContent"); 
-		 }).bind(this);
+	match_dict["editorContainer_tabsContainer_content"] = "editorContainer_container_tabContent";
+	match_dict["editorContainer_tabsContainer_speaker"] = "editorContainer_container_tabSpeaker";
+	match_dict["editorContainer_tabsContainer_metadata"] = "editorContainer_container_tabMetadata";
 
-	$("editorContainer_tabsContainer_speaker").onclick = (function() {
-			this.handleTabSwitch("editorContainer_tabsContainer_speaker" , "editorContainer_container_tabSpeaker"); 
-		}).bind(this);
+	buttons_list = document.getElementsByClassName("editor_tabs_button");
+	for (var i = 0; i < buttons_list.length; i++){
+		buttons_list[i].addEventListener("click", function(){
 
-	$("editorContainer_tabsContainer_metadata").onclick = (function() {
-		    this.handleTabSwitch("editorContainer_tabsContainer_metadata" , "editorContainer_container_tabMetadata"); 
-		 }).bind(this);
+			console.log("in");
+			//Set the "active" class to the button that was clicked
+			var current = document.getElementsByClassName("editor_tabs_button_active");
+			current[0].className = current[0].className.replace(" editor_tabs_button_active", " editor_tabs_button");
+
+			// "this" will be the button that was clicked
+			this.className = this.className.replace("editor_tabs_button", " editor_tabs_button_active");
+			
+			// Display the associated tab
+			var targetTab = match_dict[current[0].id];
+			tabs_list = document.getElementsByClassName("editorContainer_container_tab");
+			for(var i = 0; i < tabs_list.length; i++) {
+				tabs_list[i].style.display = "none";
+			}
+			$(targetTab).style.display = "block";
+		});
+	}
+
+	// Set the tab "Content" to default and also make its button active
+	var button_tab_content = $("editorContainer_tabsContainer_content");
+	button_tab_content.className = button_tab_content.className.replace("editor_tabs_button", "");
+	button_tab_content.className += " editor_tabs_button_active";
+
+	$("editorContainer_container_tabContent").style.display = "block";
  }
  
 SpeechMap_Editor.prototype.setTextArea = function(newContent){
@@ -936,25 +962,6 @@ SpeechMap_Editor.prototype.setSide = function(newSide) {
 	}
 }
  
-SpeechMap_Editor.prototype.handleTabSwitch = function(targetButton, targetTab) {
-	buttons_list = document.getElementsByClassName("editor_tabs_button");
-	
-	// First change the background color of the selected button
-	for(var i = 0; i < buttons_list.length; i++){
-		buttons_list[i].style.backgroundColor = "#94c082";
-	}
-	$(targetButton).style.backgroundColor = "#546e4a";
-
-
-	// Display the selected tab
-	tabs_list = document.getElementsByClassName("editorContainer_container_tab");
-
-	for(var i = 0; i < tabs_list.length; i++) {
-		tabs_list[i].style.display = "none";
-	}
-	$(targetTab).style.display = "block";
-
-}
 
 /*************************************************************************************
  *	SpeechMap_GraphController Class 
