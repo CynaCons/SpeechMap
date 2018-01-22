@@ -4,14 +4,18 @@
 	<meta charset="utf-8"/>
 	<script type="text/javascript" src="https://rawgit.com/jgraph/mxgraph/master/javascript/mxClient.js"></script>
 	<script type="text/javascript" src="https://rawgit.com/vkiryukhin/vkBeautify/master/vkbeautify.js"></script>
+	
+	<link href="https://cdn.muicss.com/mui-0.9.35/css/mui.min.css" rel="stylesheet" type="text/css" />
+	<script src="http://cdn.muicss.com/mui-0.9.35/js/mui.min.js"></script>
+
+	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+	<link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
+	<script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+	
 	<style type="text/css">
 	body
 	{
 		background-color:#FFFFFF;width:100%;
-	}
-	#button_editor_addSaveNode
-	{
-		position:absolute;right:5%;
 	}
 	#editorContainer
 	{
@@ -29,6 +33,7 @@
 		width: calc(100% - 50px);
 		height: 100%;
 		float:right;
+		background-color: white;
 	}
 	.editorContainer_container_tab
 	{
@@ -69,23 +74,24 @@
 	}
 	#textarea_editor_nodeContent
 	{
-		width:100%;
-		height:250px;
-		resize:none;
-		left:0;
-		box-sizing: border-box;
-		border: none;
-		top: 0;
+		position: relative;
+		display: inline-block;
+		width: 300x;
+		height: 400px;
+		resize: none;
+		background-color: #f8f8f8;
 	}
 	#button_editor_addSaveNode
 	{
-		width: 100%;
-		position: sticky;
-	}
+		position: relative;
+		width: 300px;
+		display: inline-block;
+		top: -15px;
+	}	
 	#div_editor_nodeContentContainer
 	{
 		width: 100%;
-		height: 300px;
+		height: 100%;
 		top: 0;
 	}
 	#graphContainer
@@ -94,11 +100,11 @@
 		width: 1185px;
 		float:left;
 		background-color:rgba(243, 10, 10, 0.158);
-		cursor:default;
-		position:fixed;
-		top:75px;
-		left:350px;
-		overflow-y:scroll;
+		cursor: default;
+		position: fixed;
+		top: 75px;
+		left: 350px;
+		overflow-y: scroll;
 	}
 	#header 
 	{
@@ -125,14 +131,10 @@
 	}
 	.button_editorContent_formatText
 	{
-		width:33%;
-		height:25px;
-		margin: 0px;
+		width:30%;
+		margin-left: 1px;
 		padding: 0px;
-		display: block;
-		float: left;
-		border: none;
-		background-color: #e3e3e3
+		margin-bottom: 10px;
 	}
 	.button_editorContent_formatText:hover
 	{
@@ -256,6 +258,11 @@
 		top:25%;
 		left:30%;
 	}
+	#speakerTab_speakersList
+	{
+		list-style-type: none;
+		padding: 0;	
+	}
 	</style>
 </head>
 <body onload="main(document.getElementById('graphContainer'))" >
@@ -301,29 +308,46 @@
 		</div>
 		<div id="editorContainer_container_tabContent" class="editorContainer_container_tab">
 			<div id="editor">
-				<input type="button" id="button_editorContent_bold" class="button_editorContent_formatText" value="B">
-				<input type="button" id="button_editorContent_italic" class="button_editorContent_formatText" value="I">
-				<input type="button" id="button_editorContent_underligned" class="button_editorContent_formatText" value="U">
+				<input type="button" id="button_editorContent_bold" class="mui-btn button_editorContent_formatText" value="B">
+				<input type="button" id="button_editorContent_italic" class="mui-btn button_editorContent_formatText" value="I">
+				<input type="button" id="button_editorContent_underligned" class="mui-btn button_editorContent_formatText" value="U">
+				<div class="mui-divider"></div>
 				<br>
-				Speaker Name:<br>
-				<input type="text" id="input_editor_newSpeaker" name="speaker_name">
-				 <input type="button"  id="button_editor_newSpeaker" value="Register new speaker"><br>
+				<div class="mui-select" >
+					<select id="select_editor_speaker">
+					</select>
+					<label>Choose Speaker</label>
+				</div>
+
+				<label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="radio_editor_left">
+					<input type="radio" id="radio_editor_left" class="mdl-radio__button" name="side" value="Left" checked=true>
+					<span class="mdl-radio__label">Left</span>
+				</label>
+				<label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="radio_editor_right">
+					<input type="radio" id="radio_editor_right" class="mdl-radio__button" name="side" value="Right">
+					<span class="mdl-radio__label">Right</span>
+				</label>
 				<br>
-				Speaker<br>
-				<select id="select_editor_speaker"> 
-				</select><br>
-				Side<br>
-				<form>
-					<input type="radio" id="radio_editor_left" name="side" value="Left" checked=true>Left
-					<input type="radio" id="radio_editor_right" name="side" value="Right">Right
-				</form><br>
+				<div class="mdl-textfield mdl-js-textfield">
+					<textarea class="mdl-textfield__input" type="text" id="textarea_editor_nodeContent"></textarea>
+					<label class="mdl-textfield__label" for="textarea_editor_nodeContent">Node content...</label>
+				</div>
+				<button id="button_editor_addSaveNode" value="Add node" class="mui-btn mui-btn--raised mui-btn--primary">
+					Add node
+				</button>
 			</div>
-			<div id="div_editor_nodeContentContainer">
-				<textarea id="textarea_editor_nodeContent"></textarea>
-				<input type="button" id="button_editor_addSaveNode" value="Add">
-			</div>
+
+
 		</div>
-		<div id="editorContainer_container_tabSpeaker" class="editorContainer_container_tab">Speaker tab</div>
+		<div id="editorContainer_container_tabSpeaker" class="editorContainer_container_tab">
+			Speaker name:<br>
+			<input type="text" id="input_editor_newSpeaker" name="speaker_name">
+			<input type="button"  id="button_editor_newSpeaker" value="Register new speaker">
+			<br>
+			<br>
+			List of registered speakers:
+			<ul id="speakerTab_speakersList"></ul>
+		</div>
 		<div id="editorContainer_container_tabMetadata" class="editorContainer_container_tab">Metadata tab</div>
 	</div>
 
@@ -336,14 +360,25 @@
 // TODOList
 
 // DONE -- Add "New Speaker" option in the Speaker select of the editor
-// TODO -- Add the side to the metadata of the Nodes in the XML Export. Add compatibily during the loading of a map.
+// DONE -- Add the side to the metadata of the Nodes in the XML Export. Add compatibily during the loading of a map.
 // DONE -- Add synchronisation mechanisme between the Speaker select and the corresponding model element (sm.metadata.speaker_namesList)
 // DONE -- Add buttons in the header 
-// TODO -- Add callbacks to the buttons which modify the currently selected text (by adding <> around it)
-// TODO -- Rework the position and size of the html elements to use fixed numbers of pixels
-// TODO -- Add tabs to the SpeechMap_Editor (like what I draw at work)
+// DONE -- Add callbacks to the buttons which modify the currently selected text (by adding <> around it)
+// DONE -- Add tabs to the SpeechMap_Editor (like what I draw at work)
+
+// TODO -- Display the list of already registered speaker in the speaker tab	
+// TODO -- "Populate" the three tabs of the editor
+// TODO -- Make the top header not fixed, so that it is only visible at the top of the page	
+// TODO -- Remove node
+
+// PROJECT ARCHITECTURE
+// TDOD -- Split the "index.html" file into three separate files: html, css and javascript
+// TODO -- Rework the names and establish new naming conventions for id and class
+
+//	GRAPHICS
 // TODO -- Change the visual effect that appears when selecting an entity on the graph
 // TODO -- Rework the map visuals to looks like squares and round
+// TODO -- Rework the position and size of the html elements to use fixed numbers of pixels
 /**
  * NodeCategoryEnum Enum. Defines the different types of Node that can exist.
  */
@@ -777,6 +812,12 @@ SpeechMap.prototype.isNodeSelected = function() {
 			new_option.value = name;
 			new_option.innerHTML = name;
 			select.appendChild(new_option);
+
+			// Also add the speaker name to the list of registered speakers in the SpeakerTab of the editor
+			var node = document.createElement("li");
+			var textNode = document.createTextNode(name);
+			node.appendChild(textNode);
+			$("speakerTab_speakersList").appendChild(node);
 		}
 	}
 	
@@ -795,6 +836,12 @@ SpeechMap.prototype.isNodeSelected = function() {
 			
 			// Add the new Speaker to the model
 			sm.metadata.speaker_namesList.push(value);
+
+			// Add the nez speaker to the list of registered speakers in the SpeakerTab of the editor
+			var node = document.createElement("li");
+			var textNode = document.createTextNode(value);
+			node.appendChild(textNode);
+			$("speakerTab_speakersList").appendChild(node);
 		}
 		
 
