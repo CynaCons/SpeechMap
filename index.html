@@ -2,6 +2,8 @@
 <html>
 <head>
 	<meta charset="utf-8"/>
+	<script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+
 	<script type="text/javascript" src="https://rawgit.com/jgraph/mxgraph/master/javascript/mxClient.js"></script>
 	<script type="text/javascript" src="https://rawgit.com/vkiryukhin/vkBeautify/master/vkbeautify.js"></script>
 	
@@ -11,6 +13,14 @@
 	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 	<link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
 	<script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+
+	  <!--Import Google Icon Font-->
+      <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+      <!--Import materialize.css-->
+      <link type="text/css" rel="stylesheet" href="css/materialize.min.css"  media="screen,projection"/>
+
+      <!--Let browser know website is optimized for mobile-->
+      <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 	
 	<style type="text/css">
 	body
@@ -265,7 +275,7 @@
 	}
 	</style>
 </head>
-<body onload="main(document.getElementById('graphContainer'))" >
+<body  >
 
 	<!-- Create a container for the overlay of the the mask behind it -->
 	<div id="init_overlay">
@@ -333,7 +343,7 @@
 					<label class="mdl-textfield__label" for="textarea_editor_nodeContent">Node content...</label>
 				</div>
 				<button id="button_editor_addSaveNode" value="Add node" class="mui-btn mui-btn--raised mui-btn--primary">
-					Add node
+					Add Node
 				</button>
 			</div>
 
@@ -773,13 +783,13 @@ SpeechMap.prototype.setNodeSelected = function(selectedNode) {
 	this.currentSelectedNode = selectedNode;
 	
 	// Change the text of the Editor button from Add to Update
-	$("button_editor_addSaveNode").value = "Update";
+	$("#button_editor_addSaveNode")[0].innerHTML = "Update Node";
 }
 
 SpeechMap.prototype.unsetNodeSelected = function() {
 	this.nodeSelected_b = false;
 	this.editor.clearTextArea();
-	$("button_editor_addSaveNode").value = "Add";
+	$("#button_editor_addSaveNode")[0].innerHTML = "Add Node";
 
 }
 
@@ -807,7 +817,7 @@ SpeechMap.prototype.isNodeSelected = function() {
 		for (var i in speakerList) {
 			var name = speakerList[i];
 			console.log("Adding the following name to the Editor: " + name);
-			var select = $("select_editor_speaker");
+			var select = $("#select_editor_speaker")[0];
 			var new_option = document.createElement("option");
 			new_option.value = name;
 			new_option.innerHTML = name;
@@ -817,12 +827,12 @@ SpeechMap.prototype.isNodeSelected = function() {
 			var node = document.createElement("li");
 			var textNode = document.createTextNode(name);
 			node.appendChild(textNode);
-			$("speakerTab_speakersList").appendChild(node);
+			$("#speakerTab_speakersList")[0].appendChild(node);
 		}
 	}
 	
 	// Add onclick callback to the "Register New Speaker" of the Editor
-	document.getElementById("button_editor_newSpeaker").onclick = function() {
+	$("#button_editor_newSpeaker").click(function(){
 		console.log("Button New Speaker");
 		var input_field = document.getElementById("input_editor_newSpeaker");
 		var value = input_field.value;
@@ -841,15 +851,15 @@ SpeechMap.prototype.isNodeSelected = function() {
 			var node = document.createElement("li");
 			var textNode = document.createTextNode(value);
 			node.appendChild(textNode);
-			$("speakerTab_speakersList").appendChild(node);
+			$("#speakerTab_speakersList")[0].appendChild(node);
 		}
 		
 
 		input_field.value = "";
-	}
+	});
 
 	// Add callback to the "Add/Save" button of the Editor
-	$("button_editor_addSaveNode").onclick = function() {
+	$("#button_editor_addSaveNode").click(function(){
 		var input_field = document.getElementById("textarea_editor_nodeContent");
 		var value = input_field.value;
 		
@@ -881,9 +891,9 @@ SpeechMap.prototype.isNodeSelected = function() {
 		// If a Node is currently selected, the button functionality is to "Update" the selected node
 		else {
 			var selectedNode = sm.getNodeSelected();
-			selectedNode.content = $("textarea_editor_nodeContent").value;
-			selectedNode.metadata.speaker = $("select_editor_speaker").value;
-			if ($("radio_editor_left").checked === true){
+			selectedNode.content = $("#textarea_editor_nodeContent")[0].value;
+			selectedNode.metadata.speaker = $("#select_editor_speaker")[0].value;
+			if ($("#radio_editor_left")[0].checked === true){
 				selectedNode.metadata.side = "left";
 			} else {
 				selectedNode.metadata.side = "right";
@@ -891,16 +901,16 @@ SpeechMap.prototype.isNodeSelected = function() {
 			
 			sm.makeGraph(graph, parent);
 		}
-	}
+	});
 	
 	// Add onchange callback to the Textarea of the Editor
-	$("textarea_editor_nodeContent").onchange = function() {
+	$("#textarea_editor_nodeContent").change(function() {
 		console.log("DEBUG::textare_editor::onchange -- Updated text");
-	}
+	});
 
 	// Callback for the "Bold" button of the ActionBar
-	$("button_editorContent_bold").onclick = function() {
-		var textArea = $("textarea_editor_nodeContent");
+	$("#button_editorContent_bold").click(function(){
+		var textArea = $("#textarea_editor_nodeContent")[0];
 
 		var len = textArea.value.length;
 		var start = textArea.selectionStart;
@@ -911,11 +921,11 @@ SpeechMap.prototype.isNodeSelected = function() {
 
 		textArea.value = textArea.value.substring(0, start)
 						+ newText + textArea.value.substring(end, len);
-	}
+	});
 
-		// Callback for the "Italic" button of the ActionBar
-		$("button_editorContent_italic").onclick = function() {
-		var textArea = $("textarea_editor_nodeContent");
+	// Callback for the "Italic" button of the ActionBar
+	$("#button_editorContent_italic").click(function(){
+		var textArea = $("#textarea_editor_nodeContent")[0];
 
 		var len = textArea.value.length;
 		var start = textArea.selectionStart;
@@ -926,11 +936,11 @@ SpeechMap.prototype.isNodeSelected = function() {
 
 		textArea.value = textArea.value.substring(0, start)
 						+ newText + textArea.value.substring(end, len);
-	}
+	});
 
 		// Callback for the "Underligned" button of the ActionBar
-		$("button_editorContent_underligned").onclick = function() {
-		var textArea = $("textarea_editor_nodeContent");
+		$("#button_editorContent_underligned").click(function(){
+		var textArea = $("#textarea_editor_nodeContent")[0];
 
 		var len = textArea.value.length;
 		var start = textArea.selectionStart;
@@ -941,7 +951,7 @@ SpeechMap.prototype.isNodeSelected = function() {
 
 		textArea.value = textArea.value.substring(0, start)
 						+ newText + textArea.value.substring(end, len);
-	}
+	});
 
 	/** 
 	 *	EDITOR TABS 
@@ -973,39 +983,39 @@ SpeechMap.prototype.isNodeSelected = function() {
 			for(var i = 0; i < tabs_list.length; i++) {
 				tabs_list[i].style.display = "none";
 			}
-			$(targetTab).style.display = "block";
+			$("#" + targetTab)[0].style.display = "block";
 		});
 	}
 
 	// Set the tab "Content" to default and also make its button active
-	var button_tab_content = $("editorContainer_tabsContainer_content");
+	var button_tab_content = $("#editorContainer_tabsContainer_content")[0];
 	button_tab_content.className = button_tab_content.className.replace("editor_tabs_button", "");
 	button_tab_content.className += " editor_tabs_button_active";
 
-	$("editorContainer_container_tabContent").style.display = "block";
+	$("#editorContainer_container_tabContent")[0].style.display = "block";
  }
  
 SpeechMap_Editor.prototype.setTextArea = function(newContent){
 	// Get the text area and update it's value
-	$("textarea_editor_nodeContent").value = newContent;
+	$("#textarea_editor_nodeContent")[0].value = newContent;
 }
 
 SpeechMap_Editor.prototype.clearTextArea = function() {
 	// Get the text area html element and remove it's content 
-	$("textarea_editor_nodeContent").value = "";
+	$("#textarea_editor_nodeContent")[0].value = "";
 }
 
 SpeechMap_Editor.prototype.setSpeaker = function(newSpeaker) {
-	$("select_editor_speaker").value = newSpeaker;
+	$("#select_editor_speaker")[0].value = newSpeaker;
 }
 
 SpeechMap_Editor.prototype.setSide = function(newSide) {
 	if (newSide === "left"){
-		$("radio_editor_left").checked = true;
-		$("radio_editor_right").checked = false;
+		$("#radio_editor_left")[0].checked = true;
+		$("#radio_editor_right")[0].checked = false;
 	} else if (newSide === "right") {
-		$("radio_editor_right").checked = true;
-		$("radio_editor_left").checked = false;
+		$("#radio_editor_right")[0].checked = true;
+		$("#radio_editor_left")[0].checked = false;
 	}
 }
  
@@ -1462,30 +1472,31 @@ SpeechMapInitializer = function (initCompleteCallbackFunction) {
 	this.initCompleteCallbackFunction = initCompleteCallbackFunction
 	
 	// Simulate a click on the "show overlay" button
-	$("a_showOverlay").click();
+	$("#a_showOverlay")[0].click();
+
 	
 	// Callback when clicking on the "New Map" div
-	$("div_overlay_main_newMap").onclick = function() {
+	$("#div_overlay_main_newMap").click(function(){
 		console.log("New Map selected");
 		this.currentSelection = "NEW_MAP";
 		
 		//Set the effects for the current selection and clean it for the other choice
-		$("div_overlay_main_newMap").style.boxShadow = "0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23)";
-		$("div_overlay_main_loadMap").style.boxShadow = "";
-	}.bind(this);
+		$("#div_overlay_main_newMap")[0].style.boxShadow = "0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23)";
+		$("#div_overlay_main_loadMap")[0].style.boxShadow = "";
+	}.bind(this));
 
 	// Callback when clicking on the "Load Map" div
-	$("div_overlay_main_loadMap").onclick = function() {
+	$("#div_overlay_main_loadMap").click(function(){
 		console.log("Load Map selected");
 		this.currentSelection = "LOAD_MAP";
 		
 		//Set the effects for the current selection and clean it for the other choice
-		$("div_overlay_main_loadMap").style.boxShadow = "0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23)";
-		$("div_overlay_main_newMap").style.boxShadow = "";
-	}.bind(this);
+		$("#div_overlay_main_loadMap")[0].style.boxShadow = "0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23)";
+		$("#div_overlay_main_newMap")[0].style.boxShadow = "";
+	}.bind(this));
 	
 	// Callback for the "Confirm" button of the overlay
-	$("button_overlay_bottom_confirm").onclick = function() {
+	$("#button_overlay_bottom_confirm").click(function(){
 		console.log("Clicked on the confirm button");
 		
 		// If NEW_MAP, then create the default map
@@ -1498,15 +1509,15 @@ SpeechMapInitializer = function (initCompleteCallbackFunction) {
 		// Else if LOAD_MAP, get a file from the user, make a XMLDocument from it and create the according map
 		else if (this.currentSelection === "LOAD_MAP") {
 			// Nested events below
-			var button_loadMap = $("button_overlay_loadMap");
+			var button_loadMap = $("#button_overlay_loadMap");
 			
 			// 1 - Function called when the "LoadMap" button has been clicked (click is simulated below, button is not displayed)
-			button_loadMap.onchange = function() {
+			button_loadMap.change(function(){
 				// 3 - Retrieve the file that was uploaded by the user and instanciate a FileReader object				
-				var file = $("button_overlay_loadMap").files[0];
+				var file = $("#button_overlay_loadMap")[0].files[0];
 				var fileReader = new FileReader();
 				// 4 - Function called once reading the file is complete
-				fileReader.onload = function(fileContent) {
+				fileReader.onload = function(fileContent){
 					// 6 - Parse the file that was uploaded a make a SpeechMap from it
 					// TODO Add checks to assert that the uploaded document is indeed an xml file
 					var parser = new DOMParser();
@@ -1518,14 +1529,14 @@ SpeechMapInitializer = function (initCompleteCallbackFunction) {
 				}.bind(this);
 				// 5 - Start reading the file that was uploaded
 				fileReader.readAsText(file);
-			}.bind(this);
+			}.bind(this));
 			
 			// 2 - Simulate a click on the "Load Map" button for the user to pick a file from his filesystem
-			button_loadMap.click(); 
+			button_loadMap[0].click(); 
 		}			
 		// Hide the overlay
 		document.location = "#";
-	}.bind(this);
+	}.bind(this));
 }
 
 SpeechMapInitializer.prototype.getSM = function() {
@@ -1541,11 +1552,11 @@ var parent = null;
 var sm = null;
 var smi = null;
 
-/** Convenient utility function */
+/** Convenient utility function 
 $ = function(id) {
 			return document.getElementById(id);
 }
-
+*/
 /** Main function executed once the page is loaded */
 function main(container){
 
@@ -1556,38 +1567,38 @@ function main(container){
 		sm = smi.getSM();
 		sm.serializeToConsole();
 		sm.makeGraph(graph, parent);
-	}
+	};
 	smi = new SpeechMapInitializer(smi_initCompleteCallback);
 
 	// Add callback to the button
-	$("button_addNode_HerrA").onclick = function() {
+	$("#button_addNode_HerrA").click(function(){
 		console.log("Button Click");
 		
 		sm.addNode(NodeCategoryEnum.DEFAULT, loremString, "Herr A", "right");
 		sm.makeGraph(graph, parent);
-	}
+	});
 	
 	// Add callback to the button
-	$("button_addNode_HerrB").onclick = function() {
+	$("#button_addNode_HerrB").click(function(){
 		console.log("Button Click");
 		
 		sm.addNode(NodeCategoryEnum.DEFAULT, loremString, "Herr B", "left");
 		sm.makeGraph(graph, parent);
-	}
+	});
 	
 	// Add callback to the "Clear" button
-	$("button_clear").onclick = function() {
+	$("#button_clear").click(function(){
 		console.log("Button Clear Click");
 		
 		sm.clearMap(graph,parent);
-	}
+	});
 	
 	// Add callback to the "XML String" button
-	$("button_xmlString").onclick = function() {
+	$("#button_xmlString").click(function(){
 		console.log("Button XML String");
 		
 		sm.serializeToXML();
-	}
+	});
 
 
 	/*******************************
@@ -1601,7 +1612,11 @@ function main(container){
 	parent = graph.getDefaultParent();
 	
 };
+$(document).ready(function () {
+	main(document.getElementById('graphContainer'))
+});
 </script>
+<script type="text/javascript" src="js/materialize.min.js"></script>
 
 </body>
 </html> 
