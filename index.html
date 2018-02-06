@@ -43,7 +43,6 @@
 		width: calc(100% - 50px);
 		height: 100%;
 		float:right;
-		background-color: white;
 	}
 	.editorContainer_container_tab
 	{
@@ -52,6 +51,7 @@
 		height: 100%;
 		float: right;
 		display:none;
+		background-color: white;
 	}
 	#editorContainer_tabsContainer
 	{
@@ -82,22 +82,7 @@
 		width: 100%;
 		height: 150px;
 	}
-	#textarea_editor_nodeContent
-	{
-		position: relative;
-		display: inline-block;
-		width: 300x;
-		height: 400px;
-		resize: none;
-		background-color: #f8f8f8;
-	}
-	#button_editor_addSaveNode
-	{
-		position: relative;
-		width: 300px;
-		display: inline-block;
-		top: -15px;
-	}	
+
 	#div_editor_nodeContentContainer
 	{
 		width: 100%;
@@ -139,17 +124,7 @@
 		width:25px;
 		height:25px;
 	}
-	.button_editorContent_formatText
-	{
-		width:30%;
-		margin-left: 1px;
-		padding: 0px;
-		margin-bottom: 10px;
-	}
-	.button_editorContent_formatText:hover
-	{
-		background-color: #888888
-	}
+
 	#init_overlay
 	{
 		display: none;
@@ -273,6 +248,113 @@
 		list-style-type: none;
 		padding: 0;	
 	}
+
+	.collection-item
+	{
+		height: 25px;
+	}
+
+
+	/* Editor Content Tab */
+
+	.button_editorContent_formatText
+	{
+		width:30%;
+		padding: 0px;
+		margin-bottom: 10px;
+		position: relative;
+		left: 6px;
+
+	}
+	.button_editorContent_formatText:hover
+	{
+		background-color: #888888
+	}
+	#div_container_speakersList
+	{
+		position: relative;
+		width: 96%;
+		left: 2%;
+		padding: 0;
+	}
+	#div_container_speakersList ul
+	{
+		overflow: hidden;
+		overflow-y: scroll;	
+		max-height: 337px;
+	}
+	/* The button "File" to select a logo for the speaker */
+	#editor_inputFile_buttonDiv
+	{
+		height: 35px;
+		line-height: 35px;
+	}
+	#editor_inputFile_textDiv
+	{
+		height: 32px;
+		line-height: 35px;
+	}
+	#editor_inputFile_containerDiv
+	{
+		margin-bottom: 10px;
+		width: 100%;
+	}
+	#button_editor_newSpeaker
+	{
+		position: relative;
+		left: calc(50% - 28px);
+		background-color: #01579B;
+	}
+	#button_editor_newSpeaker:hover
+	{
+		background-color: #a0a0a0;
+	}
+	#editor_inputName_containerDiv
+	{
+		position: relative;
+		width: 96%;
+		left: 2%;
+	}
+	#editor_form_divContainer
+	{
+		position: relative;
+		width: 96%;
+		left: 2%
+	}
+	#editorContent_textArea_divContainer
+	{
+		position: relative;
+		width: 96%;
+		left: 2%;
+		padding: 0;
+	}
+	#editorContent_form_divContainer
+	{
+		position: relative;
+		width: 96%;
+		left: 2%;
+	}
+	#textarea_editor_nodeContent
+	{
+		position: relative;
+		display: inline-block;
+		width: 100%;
+		height: 363px;
+		max-height: 363px;
+		overflow-y: scroll;
+		resize: none;
+	}
+	#button_editor_addSaveNode
+	{
+		position: relative;
+		width: 100%;
+		display: inline-block;
+		top: -22px;
+	}	
+	#button_editor_addSaveNode:hover
+	{
+		background-color: #a0a0a0;
+	}	
 	</style>
 </head>
 <body  >
@@ -315,51 +397,99 @@
 			<button id="editorContainer_tabsContainer_content" class="editor_tabs_button">C</button>
 			<button id="editorContainer_tabsContainer_speaker" class="editor_tabs_button">S</button>
 			<button id="editorContainer_tabsContainer_metadata" class="editor_tabs_button">M</button>
-		</div>
+		</div>☺
+		<!-- Content tab -->
 		<div id="editorContainer_container_tabContent" class="editorContainer_container_tab">
 			<div id="editor">
-				<input type="button" id="button_editorContent_bold" class="mui-btn button_editorContent_formatText" value="B">
-				<input type="button" id="button_editorContent_italic" class="mui-btn button_editorContent_formatText" value="I">
-				<input type="button" id="button_editorContent_underligned" class="mui-btn button_editorContent_formatText" value="U">
-				<div class="mui-divider"></div>
-				<br>
-				<div class="mui-select" >
-					<select id="select_editor_speaker">
-					</select>
-					<label>Choose Speaker</label>
+				<div class="card-panel" id="editorContent_form_divContainer">
+					<input type="button" id="button_editorContent_bold" class="btn button_editorContent_formatText" value="B">
+					<input type="button" id="button_editorContent_italic" class="btn button_editorContent_formatText" value="I">
+					<input type="button" id="button_editorContent_underligned" class="btn button_editorContent_formatText" value="U">
+					<div class="mui-divider"></div>
+					<br>
+					<div class="input-field">
+						<select id="select_editor_speaker">
+						</select>
+						<label>Choose Speaker</label>
+					</div>
+					<form id="form_editor_side">
+						<input type="radio" id="radio_editor_left" name="side" value="Left" checked=true>
+						<label for="radio_editor_left">Left</label>
+						
+						<input type="radio" id="radio_editor_right" name="side" value="Right" checked=true>
+						<label for="radio_editor_right">Right</label>
+					</form>
 				</div>
-
-				<label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="radio_editor_left">
-					<input type="radio" id="radio_editor_left" class="mdl-radio__button" name="side" value="Left" checked=true>
-					<span class="mdl-radio__label">Left</span>
-				</label>
-				<label class="mdl-radio mdl-js-radio mdl-js-ripple-effect" for="radio_editor_right">
-					<input type="radio" id="radio_editor_right" class="mdl-radio__button" name="side" value="Right">
-					<span class="mdl-radio__label">Right</span>
-				</label>
-				<br>
-				<div class="mdl-textfield mdl-js-textfield">
-					<textarea class="mdl-textfield__input" type="text" id="textarea_editor_nodeContent"></textarea>
-					<label class="mdl-textfield__label" for="textarea_editor_nodeContent">Node content...</label>
+				<div class="card-panel" id="editorContent_textArea_divContainer">
+					<div class="input-field col s12">
+						<textarea id="textarea_editor_nodeContent" type="text" class="materialize-textarea"></textarea>
+						<label for="textarea_editor_nodeContent">Node content</label>
+					</div>
+					<button id="button_editor_addSaveNode" value="Add node" class="btn light-blue darken-4">
+						Add Node
+					</button>
 				</div>
-				<button id="button_editor_addSaveNode" value="Add node" class="mui-btn mui-btn--raised mui-btn--primary">
-					Add Node
-				</button>
 			</div>
-
-
 		</div>
+		<!-- Speaker tab -->
 		<div id="editorContainer_container_tabSpeaker" class="editorContainer_container_tab">
-			Speaker name:<br>
-			<input type="text" id="input_editor_newSpeaker" name="speaker_name">
-			<input type="button"  id="button_editor_newSpeaker" value="Register new speaker">
-			<br>
-			<br>
-			List of registered speakers:
-			<ul id="speakerTab_speakersList"></ul>
+			<div class="card-panel" id="editor_form_divContainer">
+				<div class="input-field col s12" id="editor_inputName_containerDiv">
+					<input id="input_editor_newSpeaker" type="email" class="validate">
+					<label for="input_editor_newSpeaker">Speaker name</label>
+				</div>
+				<div id="editor_colorPicker_divContainer">
+					Color Picker
+				</div>
+				<div class="file-field input-field" id="editor_inputFile_containerDiv">
+					<div class="btn" id="editor_inputFile_buttonDiv">
+						<span>File</span>
+						<input type="file">
+					</div>
+					<div class="file-path-wrapper" id="editor_inputFile_textDiv">
+						<input class="file-path validate" type="text"  placeholder="Select speaker logo" disabled>
+					</div>
+				</div>
+				<a class="btn-floating btn-large tooltipped" data-position="right" data-delay="50" 
+					data-tooltip="Register a new speaker" id="button_editor_newSpeaker">
+					
+					<i class="material-icons">add</i>
+				</a>
+			</div>
+			<div id="div_container_speakersList" class="card-panel">
+				<ul class="collection" id="speakerTab_speakersList">
+				</ul>
+			</div>
 		</div>
-		<div id="editorContainer_container_tabMetadata" class="editorContainer_container_tab">Metadata tab</div>
+		<!-- Metadata tab -->
+		<div id="editorContainer_container_tabMetadata" class="editorContainer_container_tab">
+			Select whether information is global or specific to each node
+			<br>
+  			<!-- Switch -->
+			<div class="switch">
+				<label>
+				Local
+				<input type="checkbox" id="editorMetadata_isGlobalCheckbox" checked>
+				<span class="lever"></span>
+				Global
+				</label>
+			</div>
+			<!-- Location input field -->
+			<div class="input-field col s6">
+				<i class="material-icons prefix">location_on</i>
+				<input id="editorMetadata_locationInput" type="text" class="validate">
+				<label for="editorMetadata_locationInput">Location</label>
+			</div>
+			<!-- Date picker (requires js init code) -->
+			<div class="input-field col s6">
+				<i class="material-icons prefix">date_range</i>
+				<input type="text" class="datepicker" id="editorMetadata_datepicker">
+				<label for="editorMetadata_datepicker">Date</label>
+			</div>
+		</div>
 	</div>
+
+
 
 	<!-- Creates a container for the graph with a grid wallpaper -->
 	<div id="graphContainer">
@@ -822,11 +952,26 @@ SpeechMap.prototype.isNodeSelected = function() {
 			new_option.value = name;
 			new_option.innerHTML = name;
 			select.appendChild(new_option);
+			$('#select_editor_speaker').material_select();
 
 			// Also add the speaker name to the list of registered speakers in the SpeakerTab of the editor
 			var node = document.createElement("li");
+			node.classList.add("collection-item");
+			node.classList.add("avatar");
+
+			var logo = document.createElement("img");
+			logo.src = "res/default-speaker-logo.png";
+			logo.classList.add("circle");
+
+			var span = document.createElement("span");
+			span.classList.add("title");
+
 			var textNode = document.createTextNode(name);
-			node.appendChild(textNode);
+			span.appendChild(textNode);
+
+
+			node.appendChild(logo);
+			node.appendChild(span);
 			$("#speakerTab_speakersList")[0].appendChild(node);
 		}
 	}
@@ -843,14 +988,32 @@ SpeechMap.prototype.isNodeSelected = function() {
 			new_option.value = input_field.value;
 			new_option.innerHTML = input_field.value;
 			select.appendChild(new_option);
+			// Code specific to Materialize css when updating select
+			$('#select_editor_speaker').material_select();
+			
 			
 			// Add the new Speaker to the model
 			sm.metadata.speaker_namesList.push(value);
 
 			// Add the nez speaker to the list of registered speakers in the SpeakerTab of the editor
+
 			var node = document.createElement("li");
+			node.classList.add("collection-item");
+			node.classList.add("avatar");
+
+			var logo = document.createElement("img");
+			logo.src = "res/default-speaker-logo.png";
+			logo.classList.add("circle");
+
+			var span = document.createElement("span");
+			span.classList.add("title");
+
 			var textNode = document.createTextNode(value);
-			node.appendChild(textNode);
+			span.appendChild(textNode);
+
+
+			node.appendChild(logo);
+			node.appendChild(span);
 			$("#speakerTab_speakersList")[0].appendChild(node);
 		}
 		
@@ -1610,9 +1773,19 @@ function main(container){
 	// Gets the default parent for inserting new cells. This
 	// is normally the first child of the root (ie. layer 0).
 	parent = graph.getDefaultParent();
+
 	
 };
 $(document).ready(function () {
+	$('select').material_select();
+
+
+
+	$('.datepicker').pickadate({
+		container: "body"
+	});
+			
+
 	main(document.getElementById('graphContainer'))
 });
 </script>
