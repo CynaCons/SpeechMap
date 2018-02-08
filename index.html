@@ -327,6 +327,8 @@
 		width: 96%;
 		left: 2%;
 		padding: 0;
+		height: 363px;
+		max-height: 363px;
 	}
 	#editorContent_form_divContainer
 	{
@@ -343,6 +345,7 @@
 		max-height: 363px;
 		overflow-y: scroll;
 		resize: none;
+		padding: 0;
 	}
 	#button_editor_addSaveNode
 	{
@@ -355,6 +358,22 @@
 	{
 		background-color: #a0a0a0;
 	}	
+	#editorMetadata_submitButton
+	{
+		position: relative;
+		width: 100%;
+		display: inline-block;
+	}
+	#editorMetadata_submitButton:hover
+	{
+		background-color: #a0a0a0;
+	}
+	#editorMetadata_containerDiv
+	{
+		position: relative;
+		width: 96%;
+		left: 2%;		
+	}
 	</style>
 </head>
 <body  >
@@ -397,7 +416,7 @@
 			<button id="editorContainer_tabsContainer_content" class="editor_tabs_button">C</button>
 			<button id="editorContainer_tabsContainer_speaker" class="editor_tabs_button">S</button>
 			<button id="editorContainer_tabsContainer_metadata" class="editor_tabs_button">M</button>
-		</div>☺
+		</div>
 		<!-- Content tab -->
 		<div id="editorContainer_container_tabContent" class="editorContainer_container_tab">
 			<div id="editor">
@@ -463,28 +482,33 @@
 		</div>
 		<!-- Metadata tab -->
 		<div id="editorContainer_container_tabMetadata" class="editorContainer_container_tab">
-			Select whether information is global or specific to each node
-			<br>
-  			<!-- Switch -->
-			<div class="switch">
-				<label>
-				Local
-				<input type="checkbox" id="editorMetadata_isGlobalCheckbox" checked>
-				<span class="lever"></span>
-				Global
-				</label>
-			</div>
-			<!-- Location input field -->
-			<div class="input-field col s6">
-				<i class="material-icons prefix">location_on</i>
-				<input id="editorMetadata_locationInput" type="text" class="validate">
-				<label for="editorMetadata_locationInput">Location</label>
-			</div>
-			<!-- Date picker (requires js init code) -->
-			<div class="input-field col s6">
-				<i class="material-icons prefix">date_range</i>
-				<input type="text" class="datepicker" id="editorMetadata_datepicker">
-				<label for="editorMetadata_datepicker">Date</label>
+			<div class="card-panel" id="editorMetadata_containerDiv">
+				Select whether information is global or specific to each node
+				<br>
+				<!-- Switch -->
+				<div class="switch">
+					<label>
+					Local
+					<input type="checkbox" id="editorMetadata_isGlobalCheckbox" checked>
+					<span class="lever"></span>
+					Global
+					</label>
+				</div>
+				<!-- Location input field -->
+				<div class="input-field col s6">
+					<i class="material-icons prefix">location_on</i>
+					<input id="editorMetadata_locationInput" type="text" class="validate">
+					<label for="editorMetadata_locationInput">Location</label>
+				</div>
+				<!-- Date picker (requires js init code) -->
+				<div class="input-field col s6">
+					<i class="material-icons prefix">date_range</i>
+					<input type="text" class="datepicker" id="editorMetadata_datepicker">
+					<label for="editorMetadata_datepicker">Date</label>
+				</div>
+				<button id="editorMetadata_submitButton" value="Update" class="btn light-blue darken-4">
+					Update
+				</button>
 			</div>
 		</div>
 	</div>
@@ -569,6 +593,8 @@ Node.prototype.getSide = function() {
   */
 function SpeechMap_Metadata() {
 	this.speaker_namesList = [];
+	this.location = null;
+	this.date = null;
 }
 
 /*************************************************************************************
@@ -606,12 +632,17 @@ function SpeechMap(xmlDoc){
 		this.metadata = new SpeechMap_Metadata;
 		var sm_node = xmlDoc.getElementsByTagName("SpeechMap")[0];
 		var sm_metadata = sm_node.getElementsByTagName("metadata")[0];
+		// Build the list of speakers
 		var speaker_nodeList = [].slice.call(sm_metadata.getElementsByTagName("speaker"));
 		for ( var i in speaker_nodeList) {
 			var tmp = speaker_nodeList[i].firstChild.nodeValue.trim();
 			console.log("Detected speaker entity :" + tmp);
 			this.metadata.speaker_namesList.push(tmp);
 		}
+		// Build the date and location 
+		// Not sure about the trim() here
+		this.metadata.location = sm_metadata.getElementsByTagName("location")[0].firstChild.nodeValue.trim();
+		this.metadata.date = sm_metadata.getElementsByTagName("date")[0].firstChild.nodeValue.trim();
 		
 		this.nodesNumber = xmlDoc.getElementsByTagName("node").length;
 		this.nodesList = [this.nodesNumber];		
@@ -655,7 +686,7 @@ function SpeechMap(xmlDoc){
 	
 	
 	/* Instanciate a SpeechMap_Editor class */
-	this.editor = new SpeechMap_Editor(this.metadata.speaker_namesList);
+	this.editor = new SpeechMap_Editor(this.metadata.speaker_namesList, this.metadata.location, this.metadata.date);
 	
 	/* Instanciate a SpeechMap_GraphController class */
 	this.graphController = new SpeechMap_GraphController();
@@ -701,12 +732,24 @@ SpeechMap.prototype.serializeToXML = function() {
 	var rootNode = xmlDoc.getElementsByTagName("SpeechMap")[0];
 	
 	var metaNode = xmlDoc.createElement("metadata");
+	// Add the <speaker> tags 
 	for (var i in this.metadata.speaker_namesList) {
 		var currentSpeaker = this.metadata.speaker_namesList[i];
 		var speaker_node = xmlDoc.createElement("speaker");
 		speaker_node.appendChild(xmlDoc.createTextNode(currentSpeaker));
 		metaNode.appendChild(speaker_node);
 	}
+	// Add the <location> and <date> tags
+	var location = this.metadata.location;
+	var location_node = xmlDoc.createElement("location");
+	location_node.appendChild(xmlDoc.createTextNode(location));
+	metaNode.appendChild(location_node);
+
+	var date = this.metadata.date;
+	var date_node = xmlDoc.createElement("date");
+	date_node.appendChild(xmlDoc.createTextNode(date));
+	metaNode.appendChild(date_node);
+
 	rootNode.appendChild(metaNode);
 		
 	for (var i in this.nodesList){
@@ -938,8 +981,10 @@ SpeechMap.prototype.isNodeSelected = function() {
  /**
   * Constructor. Will register callback functions for the editor's html elements. Will also add to the editor the registered speakers from the loaded map
   * @param IN StringList speakerList The list of regsitered speakers from the loaded map. Can be empty. Names will be strings.
+  * @param IN String location The location associated to the SpeechMap.
+  * @param IN StringList date The date associated to the SpeechMap.
   */
- SpeechMap_Editor = function (speakerList) {
+ SpeechMap_Editor = function (speakerList, location, date) {
 	console.log("SpeechmapEditorConstructor");
 	
 	// Add the registered speakers from the loader map to the editor
@@ -974,6 +1019,17 @@ SpeechMap.prototype.isNodeSelected = function() {
 			node.appendChild(span);
 			$("#speakerTab_speakersList")[0].appendChild(node);
 		}
+	}
+
+	// Add the location and the date to the Metadata tab of the Editor
+	if (location) {
+		console.log("DEBUG -- Value of the location:" + location);
+		$("#editorMetadata_locationInput")[0].value = location;
+	}
+	if(date){
+		console.log("DEBUG -- Value of the date:" + date);	
+		$("#editorMetadata_datepicker")[0].value = date;
+
 	}
 	
 	// Add onclick callback to the "Register New Speaker" of the Editor
@@ -1156,6 +1212,14 @@ SpeechMap.prototype.isNodeSelected = function() {
 	button_tab_content.className += " editor_tabs_button_active";
 
 	$("#editorContainer_container_tabContent")[0].style.display = "block";
+
+	// Callback for the "Update" button of the Metadata tab
+	$("#editorMetadata_submitButton").click(function(){
+		// Update SM.meta.date
+		sm.metadata.location = $("#editorMetadata_locationInput")[0].value;
+		// Update SM.meta.location
+		sm.metadata.date = $("#editorMetadata_datepicker")[0].value;
+	});
  }
  
 SpeechMap_Editor.prototype.setTextArea = function(newContent){
