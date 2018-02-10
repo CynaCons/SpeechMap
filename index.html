@@ -29,11 +29,11 @@
 	}
 	#editorContainer
 	{
-		width:350px;
+		width:450px;
 		background-color:rgb(230, 227, 227);
 		position:fixed;
-		top:75px;
-		height: calc(100% - 75px);
+		top:50px;
+		height: calc(100% - 50px);
 		display: table-cell;
 		left: 0;
 	}
@@ -60,22 +60,29 @@
 		height:100%;
 		float:left;
 		border: none;
-		background-color: #94c082;
+		background-color: #2b303b;
 	}
 	.editor_tabs_button, .editor_tabs_button_active
 	{
-		width: 50px;
-		height: 50px;
-		background-color: #e0e0e0;
+		width:80%;
+		margin: 10%;
+		position: relative;
+		height: 45px;
+		background-color: #2b303b;
 		border: none;
+		color: white;
 	}
 	.editor_tabs_button:hover
 	{
-		background-color: #a0a0a0;
+		background-color: #941818;
 	}
 	.editor_tabs_button_active
 	{
-		background-color: #a0a0a0
+		background-color: #c91e1e;
+	}
+	.editor_tabs_button_active:focus
+	{
+		background-color: #c91e1e;
 	}
 	#editor
 	{
@@ -91,34 +98,17 @@
 	}
 	#graphContainer
 	{
-		height:100%;
+		height:95%;
 		width: 1185px;
 		float:left;
-		background-color:rgba(243, 10, 10, 0.158);
+		background-color:#2b303b;
 		cursor: default;
 		position: fixed;
-		top: 75px;
-		left: 350px;
+		top: 50px;
+		left: 450px;
 		overflow-y: scroll;
 	}
-	#header 
-	{
-		width:100%;
-		height:75px;
-		position:fixed;
-		top:0;
-		left:0;
-		background-color:#227ce4;
-	}
-	#header_actionBar
-	{
-		background-color:rgb(201, 201, 201);
-		position:absolute;
-		bottom:0;
-		width:100%;
-		height:25px;
-		
-	}
+
 	.button_header_actionBar
 	{
 		width:25px;
@@ -327,8 +317,8 @@
 		width: 96%;
 		left: 2%;
 		padding: 0;
-		height: 363px;
-		max-height: 363px;
+		height: 415px;
+		max-height: 415px;
 	}
 	#editorContent_form_divContainer
 	{
@@ -341,8 +331,8 @@
 		position: relative;
 		display: inline-block;
 		width: 100%;
-		height: 363px;
-		max-height: 363px;
+		height: 415px;
+		max-height: 415x;
 		overflow-y: scroll;
 		resize: none;
 		padding: 0;
@@ -374,6 +364,30 @@
 		width: 96%;
 		left: 2%;		
 	}
+	#header 
+	{
+		width:100%;
+		height:50px;
+		position: fixed;
+		top:0;
+		left:0;
+		background-color:#01579B;
+	}
+	#header_list
+	{
+		position: absolute;
+		display: inline;
+		list-style-type: none;
+		padding-right: 20px;
+		right: 0;
+		top: 5px;
+		color: white;
+	}
+	#header_list li
+	{
+		float: left;
+		padding: 10px;
+	}
 	</style>
 </head>
 <body  >
@@ -398,15 +412,16 @@
 
 	<!-- Create a div container for the header -->
 	<div id="header">
-		<div id="header_actionBar">
-			<input type="button" id="button_actionBar_test" class="button_header_actionBar" value="T">
-		</div>
 			<input type="button" id="button_addNode_HerrA" value="Add Node Herr A">
 			<input type="button" id="button_addNode_HerrB" value="Add Node Herr B">
 		
 			<input type="button" id="button_clear" value="Clear">
 			<input type="button" id="button_xmlString" value="XML String">		
 			<a href="#init_overlay" id="a_showOverlay">Open Overlay</a>
+			<ul id="header_list">
+				<li>Documentation</li>
+				<li>Contact</li>
+			</ul>
 
 	</div>
 	
@@ -1270,6 +1285,26 @@ SpeechMap_Editor.prototype.setSide = function(newSide) {
 	var g_mouseClick_vertexExtension = null;
 	
 	var g_mouseClick_nodeSelected_lastCell = null;
+
+	// Add styles for the "Extend" button 
+	var style = new Object();
+	style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_RECTANGLE;
+	style[mxConstants.STYLE_OPACITY] = 100;
+	style[mxConstants.STYLE_FILLCOLOR]= '#4286f4';
+	style[mxConstants.STYLE_FONTCOLOR]= '#000000';
+	style[mxConstants.STYLE_ROUNDED] = true;
+	graph.getStylesheet().putCellStyle('style_extendVertex', style);
+	delete style;
+
+	var style = new Object();
+	style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_RECTANGLE;
+	style[mxConstants.STYLE_OPACITY] = 100;
+	style[mxConstants.STYLE_FILLCOLOR]= '#ffffff';
+	style[mxConstants.STYLE_FONTCOLOR]= '#000000';
+	style[mxConstants.STYLE_ROUNDED] = false;
+	graph.getStylesheet().putCellStyle('style_extendedVertex', style);
+	delete style;
+
 	
 	//TODO Remove the code here and put it in SpeechMap functions (rename sm into this, make the globals g_* into class attributes)
 	graph.addMouseListener({
@@ -1318,7 +1353,7 @@ SpeechMap_Editor.prototype.setSide = function(newSide) {
 						var node = sm.getNodeFromVertexExtender(cell);
 						if (node)
 						{
-							// Extend the Vertex based on its content
+							// Extend the Vertex based on its content 
 							var geometry = cell.getGeometry();
 							var style = graph.getCellStyle(node.vertex);
 							var fontSize = style[mxConstants.STYLE_FONTSIZE] || mxConstants.DEFAULT_FONTSIZE;
@@ -1343,7 +1378,7 @@ SpeechMap_Editor.prototype.setSide = function(newSide) {
 									node.content, 
 									geometry.x, geometry.y, 
 									geometry.width, estimated_lineNumber * fontSize + 20,
-									"whiteSpace=wrap;overflow=hidden;style_content_default;"
+									"style_extendedVertex;whiteSpace=wrap;overflow=hidden;"
 								);
 								
 							g_mouseClick_vertexExtension = node.vertex_extension;
@@ -1356,8 +1391,8 @@ SpeechMap_Editor.prototype.setSide = function(newSide) {
 							//Load the selected Node content and metadata into the editor
 							sm.editor.setTextArea(node.content);
 							sm.editor.setSpeaker(node.metadata.speaker);
-							sm.editor.setSide(node.metadata.side);							g_mouseClick_nodeSelected_lastCell = cell; /* Save the current cell to know when a click will be outside of it */
-	
+							sm.editor.setSide(node.metadata.side);	
+							g_mouseClick_nodeSelected_lastCell = cell; /* Save the current cell to know when a click will be outside of it */
 						}
 					}
 						
@@ -1437,7 +1472,8 @@ SpeechMap_Editor.prototype.setSide = function(newSide) {
 									parent, null, "Extend",
 									vertexGeo.x , 
 									vertexGeo.y + vertexGeo.height - 20, 
-									vertexGeo.width,20
+									vertexGeo.width, 20, 
+									"style_extendVertex"
 								);
 								
 							g_mouveMove_lastNode = node;
@@ -1477,13 +1513,17 @@ SpeechMap_Renderer = function () {
 	
 	/* CONSTANTS (initialized with default values) */
 	this.RENDER_X_OFFSET = 400;
-	this.RENDER_TREE_GAP = 50;
+	this.RENDER_TREE_GAP = 5;
 
 	this.RENDER_VERTEX_MIN_HEIGHT = 4 * 11 + 10 + 10;
 	this.RENDER_VERTEX_WIDTH = 150;
 	
 	this.RENDER_META_SIZE = 30;
 	this.RENDER_META_GAP = this.RENDER_VERTEX_MIN_HEIGHT;
+	this.RENDER_META_GAP_SAMESPEAKER = this.RENDER_VERTEX_MIN_HEIGHT;
+	this.RENDER_META_GAP_CHANGESPEAKER = this.RENDER_VERTEX_MIN_HEIGHT - 25;
+
+	this.RENDER_META_VERTICAL_OFFSET = 15;
 	
 		/* Add styles */
 	var style = new Object();
@@ -1498,62 +1538,74 @@ SpeechMap_Renderer = function () {
 
 	var style = new Object();
 	style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_RECTANGLE;
-	style[mxConstants.STYLE_OPACITY] = 50;
+	style[mxConstants.STYLE_OPACITY] = 100;
 	style[mxConstants.STYLE_FILLCOLOR]= '#FFFFFF';
 	style[mxConstants.STYLE_FONTCOLOR]= '#000000';
 	style[mxConstants.STYLE_SPACING]= 5;
-	style[mxConstants.STYLE_ROUNDED] = false;
+	style[mxConstants.STYLE_ROUNDED] = true;
+	style[mxConstants.STYLE_STROKECOLOR] = "none";
 	graph.getStylesheet().putCellStyle('style_content_speaker_1', style);
 	delete style;
 	
 	var style = new Object();
 	style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_RECTANGLE;
-	style[mxConstants.STYLE_OPACITY] = 50;
+	style[mxConstants.STYLE_OPACITY] = 100;
 	style[mxConstants.STYLE_FILLCOLOR]= '#FFFFFF';
 	style[mxConstants.STYLE_FONTCOLOR]= '#000000';
 	style[mxConstants.STYLE_SPACING]= 5;
-	style[mxConstants.STYLE_ROUNDED] = false;
+	style[mxConstants.STYLE_ROUNDED] = true;
+	style[mxConstants.STYLE_STROKECOLOR] = "none";
 	graph.getStylesheet().putCellStyle('style_content_speaker_2', style);
 	delete style;
 		
 	var style = new Object();
-	style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_RECTANGLE;
-	style[mxConstants.STYLE_OPACITY] = 50;
+	style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_IMAGE;
+	style[mxConstants.STYLE_OPACITY] = 100;
 	style[mxConstants.STYLE_FILLCOLOR]= '#4CAF50';
-	style[mxConstants.STYLE_ROUNDED] = true;
+	style[mxConstants.STYLE_STROKECOLOR] = "none";
+	style[mxConstants.STYLE_IMAGE] = 'res/default-speaker-logo.png';
+	style[mxConstants.STYLE_IMAGE_WIDTH] = 30;
+	style[mxConstants.STYLE_IMAGE_HEIGHT] = 30;
+	style[mxConstants.STYLE_IMAGE_ASPECT] = 1;
+	style[mxConstants.STYLE_IMAGE_BACKGROUND] = "#ffffff";
 	graph.getStylesheet().putCellStyle('style_meta_speaker_1', style);
 	delete style;
-	
+
 	var style = new Object();
-	style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_RECTANGLE;
-	style[mxConstants.STYLE_OPACITY] = 50;
-	style[mxConstants.STYLE_FILLCOLOR]= '#FF0000';
-	style[mxConstants.STYLE_ROUNDED] = true;
+	style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_IMAGE;
+	style[mxConstants.STYLE_OPACITY] = 100;
+	style[mxConstants.STYLE_FILLCOLOR]= '#4CAF50';
+	style[mxConstants.STYLE_STROKECOLOR] = "none";
+	style[mxConstants.STYLE_IMAGE] = 'res/default-speaker-logo.png';
+	style[mxConstants.STYLE_IMAGE_WIDTH] = 30;
+	style[mxConstants.STYLE_IMAGE_HEIGHT] = 30;
+	style[mxConstants.STYLE_IMAGE_ASPECT] = 1;
+	style[mxConstants.STYLE_IMAGE_BACKGROUND] = "#ffffff";
 	graph.getStylesheet().putCellStyle('style_meta_speaker_2', style);
 	delete style;
 	
-	
 	var style = new Object();
 	style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_RECTANGLE;
-	style[mxConstants.STYLE_OPACITY] = 50;
+	style[mxConstants.STYLE_OPACITY] = 100;
 	style[mxConstants.STYLE_FILLCOLOR]= '#FFFFFF';
 	style[mxConstants.STYLE_FONTCOLOR]= '#000000';
 	style[mxConstants.STYLE_ROUNDED] = false;
+	style[mxConstants.STYLE_STROKECOLOR] = "none";
 	graph.getStylesheet().putCellStyle('style_meta_start', style);
 	delete style;
 	
 	var style = new Object();
 	style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_RECTANGLE;
-	style[mxConstants.STYLE_OPACITY] = 50;
+	style[mxConstants.STYLE_OPACITY] = 100;
 	style[mxConstants.STYLE_FILLCOLOR]= '#FFFFFF';
 	style[mxConstants.STYLE_FONTCOLOR]= '#000000';
 	style[mxConstants.STYLE_ROUNDED] = false;
+	style[mxConstants.STYLE_STROKECOLOR] = "none";
 	graph.getStylesheet().putCellStyle('style_meta_end', style);
 	delete style;
-	
-	
+
 	var style = new Object();
-	style[mxConstants.STYLE_DASHED] = true;
+	style[mxConstants.STYLE_OPACITY] = 25;
 	graph.getStylesheet().putCellStyle("style_edge", style);
 	delete style;
 }
@@ -1563,6 +1615,7 @@ SpeechMap_Renderer.prototype.render = function(graph, parent, nodesList, metadat
 	
 	this.RENDER_VERTEX_WIDTH = (graph.container.offsetWidth / 10) *3;
 	this.RENDER_X_OFFSET = (graph.container.offsetWidth / 2);
+	var g_y_metaCoord = 0;
 
 	
 	// Clear the graph
@@ -1580,12 +1633,29 @@ SpeechMap_Renderer.prototype.render = function(graph, parent, nodesList, metadat
 	graph.getModel().beginUpdate();
 	try {	
 		for (var i in nodesList){
-			var y_metaCoord = 10 + i*(this.RENDER_META_SIZE + this.RENDER_META_GAP);
-			var y_vertexCoord = y_metaCoord - (this.RENDER_VERTEX_MIN_HEIGHT / 2)+ (this.RENDER_META_SIZE / 2);
+
 			var node = nodesList[i];
+
+			// Add bigger gap for start and end nodes
+			if (parseInt(i) == 1){
+				g_y_metaCoord += 50;
+			} else if(parseInt(i) == nodesList.length-1){
+				g_y_metaCoord += 100;
+			}
 			
 			// Add the vertex
 			if(node.content){
+
+				// MIGRATION STEPS: Make the var global, increase it in each loop based on whetther there is a speaker change or not
+				var y_metaCoord = 10 + i*(this.RENDER_META_SIZE + this.RENDER_META_GAP);
+				if (parseInt(i) > 1 && i < nodesList.length-2 && nodesList[parseInt(i)-1].metadata.speaker != node.metadata.speaker)
+				{
+					// There is a speaker change, make a bigger gap
+					g_y_metaCoord += 10 + (this.RENDER_META_SIZE + this.RENDER_META_GAP);
+				} else {
+					g_y_metaCoord += 10 + this.RENDER_VERTEX_MIN_HEIGHT;
+				}
+				var y_vertexCoord = g_y_metaCoord - (this.RENDER_VERTEX_MIN_HEIGHT / 2)+ (this.RENDER_META_SIZE / 2);
 				
 				// node.getSide should always be different from null for a content node
 				var nodeSide = node.getSide();
@@ -1596,55 +1666,41 @@ SpeechMap_Renderer.prototype.render = function(graph, parent, nodesList, metadat
 								parent, null, node.content, this.RENDER_X_OFFSET + this.RENDER_TREE_GAP + this.RENDER_META_SIZE, y_vertexCoord, 80, 30, 
 								"style_content_speaker_1;whiteSpace=wrap;overflow=hidden;"
 							);
-							
-						/* Then the metadata vertex linked to the tree (timeline) */
-						node.vertex_treeNode = graph.insertVertex(
-								parent, null, node.metadata.speaker, this.RENDER_X_OFFSET, y_metaCoord, 30, 30,
-								"style_meta_speaker_1"
-							);
+
+						// Only add Meta node if the next node is a different speaker OR if is is the last node
+						if (i < nodesList.length-2 && nodesList[parseInt(i)+1].metadata.speaker != node.metadata.speaker || 
+							parseInt(i) == nodesList.length-2 ){
+							/* Then the metadata vertex linked to the tree (timeline) */
+							node.vertex_treeNode = graph.insertVertex(
+									parent, null, "", this.RENDER_X_OFFSET, g_y_metaCoord + this.RENDER_META_VERTICAL_OFFSET, 30, 30,
+									"style_meta_speaker_1"
+								);
+						}
 				} else if (nodeSide === "left"){
 					node.vertex = graph.insertVertex(
 								parent, null, node.content,  this.RENDER_X_OFFSET - this.RENDER_TREE_GAP - this.RENDER_VERTEX_WIDTH, y_vertexCoord, 80, 30,
 								"style_content_speaker_2;whiteSpace=wrap;overflow=hidden;"
 							);
 							
-						/* Then the metadata vertex linked to the tree (timeline) */
-						node.vertex_treeNode = graph.insertVertex(
-								parent, null, node.metadata.speaker, this.RENDER_X_OFFSET, y_metaCoord, 30, 30,
-								"style_meta_speaker_2"
-							);
+						// Only add Meta node if the next node is a different speaker  OR if is is the last node (nodesList.length-2 to take into account the end node)
+						if (i < nodesList.length-2 && nodesList[parseInt(i)+1].metadata.speaker != node.metadata.speaker || 
+							parseInt(i) == nodesList.length-2 ){
+							/* Then the metadata vertex linked to the tree (timeline) */
+							node.vertex_treeNode = graph.insertVertex(
+									parent, null, "", this.RENDER_X_OFFSET, g_y_metaCoord + this.RENDER_META_VERTICAL_OFFSET, 30, 30,
+									"style_meta_speaker_1"
+								);
+						}
 				}
 				
 			}else{
 				if (node.category === NodeCategoryEnum.START){
-					node.vertex = graph.insertVertex(parent, null, "S", this.RENDER_X_OFFSET, y_metaCoord, 30,30, "style_meta_start");
+					node.vertex = graph.insertVertex(parent, null, "START", this.RENDER_X_OFFSET - 35, g_y_metaCoord, 100, 30, "style_meta_start");
 				}else if( node.category === NodeCategoryEnum.END){
-					node.vertex = graph.insertVertex(parent, null, "E", this.RENDER_X_OFFSET, y_metaCoord, 30,30, "style_meta_end");
+					node.vertex = graph.insertVertex(parent, null, "END", this.RENDER_X_OFFSET - 35, g_y_metaCoord, 100, 30, "style_meta_end");
 				}
 			}
-			
-			// Add link with previous vertex if it exists
-			if (i > 0){
-				previousNode = nodesList[i-1];
-				
-				// Special cases for "start" and "end" nodes
-				if ( i == 1){
-					var edge = graph.insertEdge(parent, null, "", previousNode.vertex, node.vertex_treeNode,"endArrow=None");
-					var tree_edge = graph.insertEdge(parent, null, "", node.vertex_treeNode, node.vertex, "style_edge;endArrow=None");
-
-				}else if (i == nodesList.length - 1){
-					var edge = graph.insertEdge(parent, null, "", previousNode.vertex_treeNode, node.vertex, "endArrow=None");
-				}else{
-					var edge = graph.insertEdge(parent, null, "", previousNode.vertex_treeNode, node.vertex_treeNode, "endArrow=None");
-					var tree_edge = graph.insertEdge(parent, null, "", node.vertex_treeNode, node.vertex, "style_edge;endArrow=None");
-					
-					// Add tree_edge to the edge list of the node
-					node.edgesList.push(tree_edge);
-				}
-				previousNode.edgesList.push(edge);
-				node.edgesList.push(edge);
-			}
-			
+		
 			
 			/* Update the cells height and location (for the left side cells) */
 			if ( i != 0 && (i != nodesList.length - 1)){
