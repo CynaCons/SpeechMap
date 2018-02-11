@@ -364,7 +364,7 @@
 		width: 96%;
 		left: 2%;		
 	}
-	#editorDev_devDiv
+	#editorDev_devDiv	
 	{
 		position: relative;
 		width: 96%;
@@ -377,7 +377,7 @@
 		position: fixed;
 		top:0;
 		left:0;
-		background-color:#01579B;
+		background-color:#3D4752;
 	}
 	#header_list
 	{
@@ -580,16 +580,6 @@
 
 // TODOList
 
-// DONE -- Add "New Speaker" option in the Speaker select of the editor
-// DONE -- Add the side to the metadata of the Nodes in the XML Export. Add compatibily during the loading of a map.
-// DONE -- Add synchronisation mechanisme between the Speaker select and the corresponding model element (sm.metadata.speaker_namesList)
-// DONE -- Add buttons in the header 
-// DONE -- Add callbacks to the buttons which modify the currently selected text (by adding <> around it)
-// DONE -- Add tabs to the SpeechMap_Editor (like what I draw at work)
-
-// TODO -- Display the list of already registered speaker in the speaker tab	
-// TODO -- "Populate" the three tabs of the editor
-// TODO -- Make the top header not fixed, so that it is only visible at the top of the page	
 // TODO -- Remove node
 
 // PROJECT ARCHITECTURE
@@ -597,9 +587,6 @@
 // TODO -- Rework the names and establish new naming conventions for id and class
 
 //	GRAPHICS
-// TODO -- Change the visual effect that appears when selecting an entity on the graph
-// TODO -- Rework the map visuals to looks like squares and round
-// TODO -- Rework the position and size of the html elements to use fixed numbers of pixels
 /**
  * NodeCategoryEnum Enum. Defines the different types of Node that can exist.
  */
@@ -663,17 +650,7 @@ function SpeechMap_Metadata() {
  * Constructor. This will create the Map (model, controller and it's renderer/view)
  * @param XMLDocument xmlDoc Value null means that the default map will be created, otherwise the map is created based on the data in the xml document.
  */
-function SpeechMap(xmlDoc){
-	/* CONSTANTS (initialized with default values) */
-	this.RENDER_X_OFFSET = 400;
-	this.RENDER_TREE_GAP = 50;
-
-	this.RENDER_VERTEX_MIN_HEIGHT = 4 * 11 + 10 + 10;
-	this.RENDER_VERTEX_WIDTH = 150;
-	
-	this.RENDER_META_SIZE = 30;
-	this.RENDER_META_GAP = this.RENDER_VERTEX_MIN_HEIGHT;
-	
+function SpeechMap(xmlDoc){	
 	if (xmlDoc == null) {
 		console.log("Creating the default map");
 		this.metadata = new SpeechMap_Metadata();
