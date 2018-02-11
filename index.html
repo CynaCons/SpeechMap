@@ -6,13 +6,9 @@
 
 	<script type="text/javascript" src="https://rawgit.com/jgraph/mxgraph/master/javascript/mxClient.js"></script>
 	<script type="text/javascript" src="https://rawgit.com/vkiryukhin/vkBeautify/master/vkbeautify.js"></script>
-	
-	<link href="https://cdn.muicss.com/mui-0.9.35/css/mui.min.css" rel="stylesheet" type="text/css" />
-	<script src="http://cdn.muicss.com/mui-0.9.35/js/mui.min.js"></script>
 
-	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-	<link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
-	<script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+	<!-- Materialize color picker plugin -->
+	<link type="text/css" rel="stylesheet" href="css/materialize-colorpicker.min.css"/>
 
 	  <!--Import Google Icon Font-->
       <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -99,7 +95,7 @@
 	#graphContainer
 	{
 		height:95%;
-		width: 1185px;
+		width: 1086px;
 		float:left;
 		background-color:#2b303b;
 		cursor: default;
@@ -174,7 +170,7 @@
 	}
 	#div_overlay_main_newMap
 	{
-		background-color: #E0FFFF;
+		background-color: #2b303b;
 		position:relative;
 		float:left;
 		left:5%;
@@ -182,6 +178,9 @@
 		height:80%;
 		top:10%;
 		border-radius: 2px;
+	}
+	#div_overlay_main_newMap:hover{
+		border: 1px red;
 	}
 	#div_overlay_main_newMap p
 	{
@@ -193,7 +192,7 @@
 	}
 	#div_overlay_main_loadMap
 	{
-		background-color: #FFFFE0;
+		background-color: #2b303b;
 		position:relative;
 		float:right;
 		right:5%;
@@ -326,6 +325,7 @@
 		width: 96%;
 		left: 2%;
 	}
+
 	#textarea_editor_nodeContent
 	{
 		position: relative;
@@ -364,6 +364,12 @@
 		width: 96%;
 		left: 2%;		
 	}
+	#editorDev_devDiv
+	{
+		position: relative;
+		width: 96%;
+		left: 2%;		
+	}
 	#header 
 	{
 		width:100%;
@@ -380,7 +386,7 @@
 		list-style-type: none;
 		padding-right: 20px;
 		right: 0;
-		top: 5px;
+		top: -10px;
 		color: white;
 	}
 	#header_list li
@@ -388,36 +394,60 @@
 		float: left;
 		padding: 10px;
 	}
+	#header_title
+	{
+		color: white;
+		font-family: "entangled";
+		font-variant: small-caps;
+		position: relative;
+		left : 50px;
+		top: -10px;
+		font-size: large;
+	}
+	.overlay_text
+	{
+		font-family: "entangled";
+		font-variant: small-caps;
+		font-size: large;
+		color: white;
+	}
+	#editor_colorPicker_divContainer
+	{
+		display: inline-block;
+		border-radius: 10px;
+		background-color: black;
+	}
+	#editorSpeaker_colorPicker
+	{
+		width: 50;
+		height: 50;
+		border-radius: 15px;
+	}
 	</style>
 </head>
 <body  >
 
 	<!-- Create a container for the overlay of the the mask behind it -->
 	<div id="init_overlay">
-	    <a href="#" class="close" id="button_closeOverlay">&times;</a>
 		<div id="div_overlay_main">
 			<div id="div_overlay_main_newMap">
-				<p>NEW MAP</p>
+				<p class="overlay_text">New Map</p>
 			</div>
 			<div id="div_overlay_main_loadMap">
-				<p>LOAD MAP</p>
+				<p class="overlay_text">Import Map</p>
 				<input type="file" id="button_overlay_loadMap">
 			</div>
 		</div>
 		<div id="div_overlay_bottom">
-			<input type="button" id="button_overlay_bottom_confirm" value="Confirm">
+			<input type="button" id="button_overlay_bottom_confirm" value="Confirm" class="btn light-blue darken-4">
 		</div>
 	</div>
 	<div id="mask"></div>
 
 	<!-- Create a div container for the header -->
 	<div id="header">
-			<input type="button" id="button_addNode_HerrA" value="Add Node Herr A">
-			<input type="button" id="button_addNode_HerrB" value="Add Node Herr B">
-		
-			<input type="button" id="button_clear" value="Clear">
-			<input type="button" id="button_xmlString" value="XML String">		
-			<a href="#init_overlay" id="a_showOverlay">Open Overlay</a>
+			<a href="#init_overlay" id="a_showOverlay">Open Overlay</a>	
+			<p id="header_title" >SpeechMap</p>
 			<ul id="header_list">
 				<li>Documentation</li>
 				<li>Contact</li>
@@ -431,6 +461,7 @@
 			<button id="editorContainer_tabsContainer_content" class="editor_tabs_button">C</button>
 			<button id="editorContainer_tabsContainer_speaker" class="editor_tabs_button">S</button>
 			<button id="editorContainer_tabsContainer_metadata" class="editor_tabs_button">M</button>
+			<button id="editorContainer_tabsContainer_dev" class="editor_tabs_button">Dev</button>
 		</div>
 		<!-- Content tab -->
 		<div id="editorContainer_container_tabContent" class="editorContainer_container_tab">
@@ -472,10 +503,12 @@
 					<input id="input_editor_newSpeaker" type="email" class="validate">
 					<label for="input_editor_newSpeaker">Speaker name</label>
 				</div>
-				<div id="editor_colorPicker_divContainer">
-					Color Picker
-				</div>
-				<div class="file-field input-field" id="editor_inputFile_containerDiv">
+				<div id="editorSpeaker_colorPicker" class="file-field">
+					<div class="btn"></div>
+					<div class="file-path-wrapper">
+					  <input type="text" />
+					</div>
+				</div>				<div class="file-field input-field" id="editor_inputFile_containerDiv">
 					<div class="btn" id="editor_inputFile_buttonDiv">
 						<span>File</span>
 						<input type="file">
@@ -524,6 +557,15 @@
 				<button id="editorMetadata_submitButton" value="Update" class="btn light-blue darken-4">
 					Update
 				</button>
+			</div>
+		</div>
+		<div id="editorContainer_container_tabDev" class="editorContainer_container_tab">
+			<div class="card-panel" id="editorDev_devDiv">
+				<input type="button" id="button_addNode_HerrA" value="Add Node Herr A">
+				<input type="button" id="button_addNode_HerrB" value="Add Node Herr B">
+			
+				<input type="button" id="button_clear" value="Clear">
+				<input type="button" id="button_xmlString" value="XML String">	
 			</div>
 		</div>
 	</div>
@@ -1198,6 +1240,7 @@ SpeechMap.prototype.isNodeSelected = function() {
 	match_dict["editorContainer_tabsContainer_content"] = "editorContainer_container_tabContent";
 	match_dict["editorContainer_tabsContainer_speaker"] = "editorContainer_container_tabSpeaker";
 	match_dict["editorContainer_tabsContainer_metadata"] = "editorContainer_container_tabMetadata";
+	match_dict["editorContainer_tabsContainer_dev"] = "editorContainer_container_tabDev";
 
 	buttons_list = document.getElementsByClassName("editor_tabs_button");
 	for (var i = 0; i < buttons_list.length; i++){
@@ -1764,7 +1807,7 @@ SpeechMapInitializer = function (initCompleteCallbackFunction) {
 		this.currentSelection = "NEW_MAP";
 		
 		//Set the effects for the current selection and clean it for the other choice
-		$("#div_overlay_main_newMap")[0].style.boxShadow = "0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23)";
+		$("#div_overlay_main_newMap")[0].style.boxShadow = "0 10px 20px #941818, 0 6px 6px #941818";
 		$("#div_overlay_main_loadMap")[0].style.boxShadow = "";
 	}.bind(this));
 
@@ -1774,7 +1817,7 @@ SpeechMapInitializer = function (initCompleteCallbackFunction) {
 		this.currentSelection = "LOAD_MAP";
 		
 		//Set the effects for the current selection and clean it for the other choice
-		$("#div_overlay_main_loadMap")[0].style.boxShadow = "0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23)";
+		$("#div_overlay_main_loadMap")[0].style.boxShadow = "0 10px 20px #941818, 0 6px 6px #941818";
 		$("#div_overlay_main_newMap")[0].style.boxShadow = "";
 	}.bind(this));
 	
@@ -1904,12 +1947,17 @@ $(document).ready(function () {
 	$('.datepicker').pickadate({
 		container: "body"
 	});
+
+    $('#editorSpeaker_colorPicker').colorpicker({
+      component: '.btn'
+    });
 			
 
 	main(document.getElementById('graphContainer'))
 });
 </script>
 <script type="text/javascript" src="js/materialize.min.js"></script>
+<script type="text/javascript" src="js/materialize-colorpicker.min.js"></script>
 
 </body>
 </html> 
