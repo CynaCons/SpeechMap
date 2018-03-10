@@ -856,6 +856,10 @@ SpeechMap.prototype.saveContentToFile = function(content) {
 SpeechMap.prototype.makeGraph = function(graph, parent){
 	// Make the renderer object render the graph based on the current nodes and metadata.
 	this.renderer.render(graph, parent, this.nodesList, this.metadata);	
+	
+	// Adjust the view of the graph
+	console.log("DEBUG -- Calling the scrolling function");
+	this.graphController.scrollGraphToBottom();
 };
 
 SpeechMap.prototype.addNode = function (category, content, speakerName, side){
@@ -1020,18 +1024,12 @@ SpeechMap.prototype.isNodeSelected = function() {
 }
 
 SpeechMap.prototype.getColorFromSpeakerName = function(speakerName){
-	console.log("DEBUG -- Trying to find the color from the speaker name" + speakerName);
-	console.log(this.metadata.speakersList);
 	for(var i = 0; i <  this.metadata.speakersList.length; i++){
 		var speaker = this.metadata.speakersList[i];
-		console.log(speaker);
-		console.log("DEBUG -- match test with" + speaker.name);
 		if(speaker.name == speakerName){
-			console.log("DEBUG:: Found the color");;
 			return speaker.color;
 		}
 	}
-	console.log("DEBUG -- ERROR,  no speaker found. Returning default color");
 	return "#ffffff"; // White is default color
 }
 /*************************************************************************************
@@ -1052,7 +1050,6 @@ SpeechMap.prototype.getColorFromSpeakerName = function(speakerName){
 	if (speakersList) {
 		for (var i in speakersList) {
 			var name = speakersList[i].name;
-			console.log("Adding the following name to the Editor: " + name);
 			var select = $("#select_editor_speaker")[0];
 			var new_option = document.createElement("option");
 			new_option.value = name;
@@ -1084,11 +1081,9 @@ SpeechMap.prototype.getColorFromSpeakerName = function(speakerName){
 
 	// Add the location and the date to the Metadata tab of the Editor
 	if (location) {
-		console.log("DEBUG -- Value of the location:" + location);
 		$("#editorMetadata_locationInput")[0].value = location;
 	}
 	if(date){
-		console.log("DEBUG -- Value of the date:" + date);	
 		$("#editorMetadata_datepicker")[0].value = date;
 
 	}
@@ -1098,7 +1093,6 @@ SpeechMap.prototype.getColorFromSpeakerName = function(speakerName){
 		console.log("Button New Speaker");
 		var input_field = document.getElementById("input_editor_newSpeaker");
 		var value = input_field.value;
-		console.log("Field value: " +value);
 		if (value !== ""){
 			var select = document.getElementById("select_editor_speaker");
 			var new_option = document.createElement("option");
@@ -1113,7 +1107,6 @@ SpeechMap.prototype.getColorFromSpeakerName = function(speakerName){
 			
 			
 			// Add the new Speaker to the model
-			console.log("DEBUG -- Pusing speaker " + value + "in the speakersList");
 			sm.metadata.speakersList.push(new Speaker(value, color));
 
 			// Add the nez speaker to the list of registered speakers in the SpeakerTab of the editor
@@ -1128,7 +1121,6 @@ SpeechMap.prototype.getColorFromSpeakerName = function(speakerName){
 
 			var span = document.createElement("span");
 			span.classList.add("title");
-
 			var textNode = document.createTextNode(value);
 			span.appendChild(textNode);
 
@@ -1156,18 +1148,14 @@ SpeechMap.prototype.getColorFromSpeakerName = function(speakerName){
 				}else if (document.getElementById("radio_editor_left").checked){
 					radio_sideChoice = "left";
 				}
-				console.log("Current radio choice: " + radio_sideChoice);
 
 				var select = document.getElementById("select_editor_speaker");
 				select_value = select.value;
-				console.log("Current select value: " + select_value);
 
 
-				console.log("Field value: " + value);
 				if (radio_sideChoice !== ""){
 					sm.addNode(NodeCategoryEnum.DEFAULT, value, select_value, radio_sideChoice);
 				} else {
-					console.log("ERROR -- No side defined whent trying to add a new Node");
 				}
 				sm.makeGraph(graph, parent);			
 			}
@@ -1549,6 +1537,14 @@ SpeechMap_Editor.prototype.setSide = function(newSide) {
 		},
 		mouseUp: function(){}
 	});
+ }
+
+
+ SpeechMap_GraphController.prototype.scrollGraphToBottom = function(){
+	console.log("DEBUG -- Scrolling fix");
+	var graphDiv = document.getElementById("graphContainer");
+	console.log(graphDiv);
+	graphDiv.scrollTop = graphDiv.scrollHeight;
  }
  
 /*************************************************************************************
