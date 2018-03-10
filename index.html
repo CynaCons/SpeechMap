@@ -590,6 +590,13 @@
 /**
  * NodeCategoryEnum Enum. Defines the different types of Node that can exist.
  */
+function Speaker(speakerName, color)
+{
+	this.name = speakerName;
+	this.color = color;
+}
+
+
 var NodeCategoryEnum = {
 		DEFAULT: 0,
 		START: 1,
@@ -600,9 +607,9 @@ var NodeCategoryEnum = {
  *	Node_Metadata Class
  *	Contains all the metadata about a specific Node(or vertex) of the map.
  *************************************************************************************/
-function Node_Metadata(speaker, side)
+function Node_Metadata(speakerName, side)
 {
-	this.speaker = speaker;
+	this.speakerName = speakerName;
 	this.side = side;
 }
 
@@ -636,7 +643,7 @@ Node.prototype.getSide = function() {
   * Constructor. Create the list of registered speakers that will be filled by SpeechMap or other entities.
   */
 function SpeechMap_Metadata() {
-	this.speaker_namesList = [];
+	this.speakersList = [];
 	this.location = null;
 	this.date = null;
 }
@@ -669,9 +676,10 @@ function SpeechMap(xmlDoc){
 		// Build the list of speakers
 		var speaker_nodeList = [].slice.call(sm_metadata.getElementsByTagName("speaker"));
 		for ( var i in speaker_nodeList) {
-			var tmp = speaker_nodeList[i].firstChild.nodeValue.trim();
-			console.log("Detected speaker entity :" + tmp);
-			this.metadata.speaker_namesList.push(tmp);
+			var name = speaker_nodeList[i].firstChild.nodeValue.trim();
+			var color = speaker_nodeList[i].getAttribute("color");
+			console.log("Detected speaker entity :" + name + " and color " + color);
+			this.metadata.speakersList.push(new Speaker(name, color));
 		}
 		// Build the date and location 
 		// Not sure about the trim() here
@@ -708,10 +716,12 @@ function SpeechMap(xmlDoc){
 			/* Fill the metadata for the current Node */
 			var metadata = node.getElementsByTagName("metadata")[0];
 			var nodeSide = metadata.getAttribute("side");
-			var meta_speaker = metadata.getAttribute("speaker");
-			if (meta_speaker && nodeSide){
-				this.nodesList[i].metadata = new Node_Metadata(meta_speaker, nodeSide);
-			}
+			var speakerName = metadata.getAttribute("speaker");
+
+			if (speakerName && nodeSide){
+				console.log("OK speakerName:" + speakerName + " nodeSide: "+ nodeSide);
+				this.nodesList[i].metadata = new Node_Metadata(speakerName, nodeSide);
+			} 
 		}
 	}
 	
@@ -720,7 +730,7 @@ function SpeechMap(xmlDoc){
 	
 	
 	/* Instanciate a SpeechMap_Editor class */
-	this.editor = new SpeechMap_Editor(this.metadata.speaker_namesList, this.metadata.location, this.metadata.date);
+	this.editor = new SpeechMap_Editor(this.metadata.speakersList, this.metadata.location, this.metadata.date);
 	
 	/* Instanciate a SpeechMap_GraphController class */
 	this.graphController = new SpeechMap_GraphController();
@@ -767,10 +777,11 @@ SpeechMap.prototype.serializeToXML = function() {
 	
 	var metaNode = xmlDoc.createElement("metadata");
 	// Add the <speaker> tags 
-	for (var i in this.metadata.speaker_namesList) {
-		var currentSpeaker = this.metadata.speaker_namesList[i];
+	for (var i in this.metadata.speakersList) {
+		var currentSpeaker = this.metadata.speakersList[i];
 		var speaker_node = xmlDoc.createElement("speaker");
-		speaker_node.appendChild(xmlDoc.createTextNode(currentSpeaker));
+		speaker_node.appendChild(xmlDoc.createTextNode(currentSpeaker.name));
+		speaker_node.setAttribute("color", currentSpeaker.color);
 		metaNode.appendChild(speaker_node);
 	}
 	// Add the <location> and <date> tags
@@ -806,7 +817,7 @@ SpeechMap.prototype.serializeToXML = function() {
 		
 			var metaNode = xmlDoc.createElement("metadata");
 			if (node.metadata){
-				metaNode.setAttribute("speaker", node.metadata.speaker);
+				metaNode.setAttribute("speakerName", node.metadata.speaker.name);
 				metaNode.setAttribute("side", node.metadata.side);
 			}
 			tmpNode.appendChild(metaNode);
@@ -847,13 +858,13 @@ SpeechMap.prototype.makeGraph = function(graph, parent){
 	this.renderer.render(graph, parent, this.nodesList, this.metadata);	
 };
 
-SpeechMap.prototype.addNode = function (category, content, speaker, side){
+SpeechMap.prototype.addNode = function (category, content, speakerName, side){
 
 	// Move the "end" node at the end of the list
 	var endNode  = this.nodesList.pop();
 
 	this.nodesList.push(new Node(category, content.trim()));
-	this.nodesList[this.nodesList.length - 1].metadata = new Node_Metadata(speaker, side);
+	this.nodesList[this.nodesList.length - 1].metadata = new Node_Metadata(speakerName, side);
 	
 	this.nodesList.push(endNode);
 };
@@ -1007,6 +1018,22 @@ SpeechMap.prototype.getNodeSelected = function() {
 SpeechMap.prototype.isNodeSelected = function() {
 	return this.nodeSelected_b;
 }
+
+SpeechMap.prototype.getColorFromSpeakerName = function(speakerName){
+	console.log("DEBUG -- Trying to find the color from the speaker name" + speakerName);
+	console.log(this.metadata.speakersList);
+	for(var i = 0; i <  this.metadata.speakersList.length; i++){
+		var speaker = this.metadata.speakersList[i];
+		console.log(speaker);
+		console.log("DEBUG -- match test with" + speaker.name);
+		if(speaker.name == speakerName){
+			console.log("DEBUG:: Found the color");;
+			return speaker.color;
+		}
+	}
+	console.log("DEBUG -- ERROR,  no speaker found. Returning default color");
+	return "#ffffff"; // White is default color
+}
 /*************************************************************************************
  *	SpeechMap_Editor Class 
  *	Contains all the Javascript related to the editor on the left side of the page
@@ -1018,13 +1045,13 @@ SpeechMap.prototype.isNodeSelected = function() {
   * @param IN String location The location associated to the SpeechMap.
   * @param IN StringList date The date associated to the SpeechMap.
   */
- SpeechMap_Editor = function (speakerList, location, date) {
+ SpeechMap_Editor = function (speakersList, location, date) {
 	console.log("SpeechmapEditorConstructor");
 	
 	// Add the registered speakers from the loader map to the editor
-	if (speakerList) {
-		for (var i in speakerList) {
-			var name = speakerList[i];
+	if (speakersList) {
+		for (var i in speakersList) {
+			var name = speakersList[i].name;
 			console.log("Adding the following name to the Editor: " + name);
 			var select = $("#select_editor_speaker")[0];
 			var new_option = document.createElement("option");
@@ -1081,9 +1108,13 @@ SpeechMap.prototype.isNodeSelected = function() {
 			// Code specific to Materialize css when updating select
 			$('#select_editor_speaker').material_select();
 			
+			// Retrieve the color for this speaker
+			var color = $("#editorSpeaker_colorPicker").data('colorpicker').color.toHex();
+			
 			
 			// Add the new Speaker to the model
-			sm.metadata.speaker_namesList.push(value);
+			console.log("DEBUG -- Pusing speaker " + value + "in the speakersList");
+			sm.metadata.speakersList.push(new Speaker(value, color));
 
 			// Add the nez speaker to the list of registered speakers in the SpeakerTab of the editor
 
@@ -1145,7 +1176,7 @@ SpeechMap.prototype.isNodeSelected = function() {
 		else {
 			var selectedNode = sm.getNodeSelected();
 			selectedNode.content = $("#textarea_editor_nodeContent")[0].value;
-			selectedNode.metadata.speaker = $("#select_editor_speaker")[0].value;
+			selectedNode.metadata.speaker.name = $("#select_editor_speaker")[0].value;
 			if ($("#radio_editor_left")[0].checked === true){
 				selectedNode.metadata.side = "left";
 			} else {
@@ -1666,9 +1697,10 @@ SpeechMap_Renderer.prototype.render = function(graph, parent, nodesList, metadat
 			// Add the vertex
 			if(node.content){
 
-				// MIGRATION STEPS: Make the var global, increase it in each loop based on whetther there is a speaker change or not
+				var color = sm.getColorFromSpeakerName(node.metadata.speakerName);
+
 				var y_metaCoord = 10 + i*(this.RENDER_META_SIZE + this.RENDER_META_GAP);
-				if (parseInt(i) > 1 && i < nodesList.length-2 && nodesList[parseInt(i)-1].metadata.speaker != node.metadata.speaker)
+				if (parseInt(i) > 1 && i < nodesList.length-2 && nodesList[parseInt(i)-1].metadata.speakerName != node.metadata.speakerName)
 				{
 					// There is a speaker change, make a bigger gap
 					g_y_metaCoord += 10 + (this.RENDER_META_SIZE + this.RENDER_META_GAP);
@@ -1684,11 +1716,11 @@ SpeechMap_Renderer.prototype.render = function(graph, parent, nodesList, metadat
 				if (nodeSide === "right"){
 					node.vertex = graph.insertVertex(
 								parent, null, node.content, this.RENDER_X_OFFSET + this.RENDER_TREE_GAP + this.RENDER_META_SIZE, y_vertexCoord, 80, 30, 
-								"style_content_speaker_1;whiteSpace=wrap;overflow=hidden;"
+								"style_content_speaker_1;whiteSpace=wrap;overflow=hidden;fillColor=" + color
 							);
 
 						// Only add Meta node if the next node is a different speaker OR if is is the last node
-						if (i < nodesList.length-2 && nodesList[parseInt(i)+1].metadata.speaker != node.metadata.speaker || 
+						if (i < nodesList.length-2 && nodesList[parseInt(i)+1].metadata.speakerName != node.metadata.speakerName || 
 							parseInt(i) == nodesList.length-2 ){
 							/* Then the metadata vertex linked to the tree (timeline) */
 							node.vertex_treeNode = graph.insertVertex(
@@ -1699,11 +1731,11 @@ SpeechMap_Renderer.prototype.render = function(graph, parent, nodesList, metadat
 				} else if (nodeSide === "left"){
 					node.vertex = graph.insertVertex(
 								parent, null, node.content,  this.RENDER_X_OFFSET - this.RENDER_TREE_GAP - this.RENDER_VERTEX_WIDTH, y_vertexCoord, 80, 30,
-								"style_content_speaker_2;whiteSpace=wrap;overflow=hidden;"
+								"style_content_speaker_2;whiteSpace=wrap;overflow=hidden;fillColor=" + color
 							);
 							
 						// Only add Meta node if the next node is a different speaker  OR if is is the last node (nodesList.length-2 to take into account the end node)
-						if (i < nodesList.length-2 && nodesList[parseInt(i)+1].metadata.speaker != node.metadata.speaker || 
+						if (i < nodesList.length-2 && nodesList[parseInt(i)+1].metadata.speakerName != node.metadata.speakerName || 
 							parseInt(i) == nodesList.length-2 ){
 							/* Then the metadata vertex linked to the tree (timeline) */
 							node.vertex_treeNode = graph.insertVertex(

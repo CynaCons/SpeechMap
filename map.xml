@@ -1,9 +1,7 @@
 <SpeechMap>
 	<metadata>
-		<speaker>Herr A</speaker>
-		<speaker>Herr B</speaker>
-		<speaker>Constantin</speaker>
-		<speaker>Helene</speaker>
+		<speaker color="#567cc7">Herr A</speaker>
+		<speaker color="#dc2190">Herr B</speaker>
 		<location>Updated location</location>
 		<date>19 February, 2018</date>
 	</metadata>
