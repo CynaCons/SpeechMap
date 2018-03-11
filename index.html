@@ -423,6 +423,16 @@
 		height: 50;
 		border-radius: 15px;
 	}
+	.speakerList-colorViewer
+	{
+		width: 30px;
+		height: 30px;
+		position: absolute;
+		display: inline-block;
+		right: 35px;
+		top: 25px;
+		border-radius: 10px;
+	}
 	</style>
 </head>
 <body  >
@@ -858,7 +868,6 @@ SpeechMap.prototype.makeGraph = function(graph, parent){
 	this.renderer.render(graph, parent, this.nodesList, this.metadata);	
 	
 	// Adjust the view of the graph
-	console.log("DEBUG -- Calling the scrolling function");
 	this.graphController.scrollGraphToBottom();
 };
 
@@ -1072,9 +1081,14 @@ SpeechMap.prototype.getColorFromSpeakerName = function(speakerName){
 			var textNode = document.createTextNode(name);
 			span.appendChild(textNode);
 
+			var color = speakersList[i].color;
+			var colorDiv = document.createElement("div");
+			colorDiv.classList.add("speakerList-colorViewer");
+			colorDiv.style.background = color;
 
 			node.appendChild(logo);
 			node.appendChild(span);
+			node.appendChild(colorDiv);
 			$("#speakerTab_speakersList")[0].appendChild(node);
 		}
 	}
@@ -1124,9 +1138,14 @@ SpeechMap.prototype.getColorFromSpeakerName = function(speakerName){
 			var textNode = document.createTextNode(value);
 			span.appendChild(textNode);
 
+			var colorDiv = document.createElement("div");
+			colorDiv.classList.add("speakerList-colorViewer");
+			colorDiv.style.background = color;
 
 			node.appendChild(logo);
 			node.appendChild(span);
+			node.appendChild(colorDiv);
+
 			$("#speakerTab_speakersList")[0].appendChild(node);
 		}
 		
