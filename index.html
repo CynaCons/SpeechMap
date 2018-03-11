@@ -1066,30 +1066,11 @@ SpeechMap.prototype.getColorFromSpeakerName = function(speakerName){
 			select.appendChild(new_option);
 			$('#select_editor_speaker').material_select();
 
-			// Also add the speaker name to the list of registered speakers in the SpeakerTab of the editor
-			var node = document.createElement("li");
-			node.classList.add("collection-item");
-			node.classList.add("avatar");
-
-			var logo = document.createElement("img");
-			logo.src = "res/default-speaker-logo.png";
-			logo.classList.add("circle");
-
-			var span = document.createElement("span");
-			span.classList.add("title");
-
-			var textNode = document.createTextNode(name);
-			span.appendChild(textNode);
-
+			// Get the color for the speaker
 			var color = speakersList[i].color;
-			var colorDiv = document.createElement("div");
-			colorDiv.classList.add("speakerList-colorViewer");
-			colorDiv.style.background = color;
 
-			node.appendChild(logo);
-			node.appendChild(span);
-			node.appendChild(colorDiv);
-			$("#speakerTab_speakersList")[0].appendChild(node);
+			// DEBUG -- Add logo here
+			this.addSpeakerInList(name, "logo", color);
 		}
 	}
 
@@ -1099,7 +1080,6 @@ SpeechMap.prototype.getColorFromSpeakerName = function(speakerName){
 	}
 	if(date){
 		$("#editorMetadata_datepicker")[0].value = date;
-
 	}
 	
 	// Add onclick callback to the "Register New Speaker" of the Editor
@@ -1123,32 +1103,9 @@ SpeechMap.prototype.getColorFromSpeakerName = function(speakerName){
 			// Add the new Speaker to the model
 			sm.metadata.speakersList.push(new Speaker(value, color));
 
-			// Add the nez speaker to the list of registered speakers in the SpeakerTab of the editor
-
-			var node = document.createElement("li");
-			node.classList.add("collection-item");
-			node.classList.add("avatar");
-
-			var logo = document.createElement("img");
-			logo.src = "res/default-speaker-logo.png";
-			logo.classList.add("circle");
-
-			var span = document.createElement("span");
-			span.classList.add("title");
-			var textNode = document.createTextNode(value);
-			span.appendChild(textNode);
-
-			var colorDiv = document.createElement("div");
-			colorDiv.classList.add("speakerList-colorViewer");
-			colorDiv.style.background = color;
-
-			node.appendChild(logo);
-			node.appendChild(span);
-			node.appendChild(colorDiv);
-
-			$("#speakerTab_speakersList")[0].appendChild(node);
+			// DEBUG -- Here we should add the logo
+			sm.editor.addSpeakerInList(value, "logo", color);
 		}
-		
 
 		input_field.value = "";
 	});
@@ -1317,6 +1274,32 @@ SpeechMap_Editor.prototype.setSide = function(newSide) {
 		$("#radio_editor_right")[0].checked = true;
 		$("#radio_editor_left")[0].checked = false;
 	}
+}
+
+SpeechMap_Editor.prototype.addSpeakerInList = function(value, logo, color){
+			// Add the new speaker to the list of registered speakers in the SpeakerTab of the editor
+			var node = document.createElement("li");
+			node.classList.add("collection-item");
+			node.classList.add("avatar");
+
+			var logo = document.createElement("img");
+			logo.src = "res/default-speaker-logo.png";
+			logo.classList.add("circle");
+
+			var span = document.createElement("span");
+			span.classList.add("title");
+			var textNode = document.createTextNode(value);
+			span.appendChild(textNode);
+
+			var colorDiv = document.createElement("div");
+			colorDiv.classList.add("speakerList-colorViewer");
+			colorDiv.style.background = color;
+
+			node.appendChild(logo);
+			node.appendChild(span);
+			node.appendChild(colorDiv);
+
+			$("#speakerTab_speakersList")[0].appendChild(node);
 }
  
 
