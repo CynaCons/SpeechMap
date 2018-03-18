@@ -1292,7 +1292,13 @@ SpeechMap_Editor.prototype.clearTextArea = function() {
 }
 
 SpeechMap_Editor.prototype.setSpeaker = function(newSpeaker) {
-	$("#select_editor_speaker")[0].value = newSpeaker;
+	$("#select_editor_speaker").val(newSpeaker);
+	$("#select_editor_speaker").material_select();
+    
+
+	console.log($("#select_editor_speaker")[0]);
+
+	console.log("DEBUG -- Setting speaker to " + newSpeaker);
 }
 
 SpeechMap_Editor.prototype.setSide = function(newSide) {
@@ -1555,7 +1561,7 @@ SpeechMap_Editor.prototype.updateSelectedSpeaker = function(name, logo, color)
 							sm.setNodeSelected(node);
 							//Load the selected Node content and metadata into the editor
 							sm.editor.setTextArea(node.content);
-							sm.editor.setSpeaker(node.metadata.speaker);
+							sm.editor.setSpeaker(node.metadata.speakerName);
 							sm.editor.setSide(node.metadata.side);	
 							g_mouseClick_nodeSelected_lastCell = cell; /* Save the current cell to know when a click will be outside of it */
 						}
@@ -1573,7 +1579,7 @@ SpeechMap_Editor.prototype.updateSelectedSpeaker = function(name, logo, color)
 					
 					//Load the selected Node content and metadata into the editor
 					sm.editor.setTextArea(node.content);
-					sm.editor.setSpeaker(node.metadata.speaker);
+					sm.editor.setSpeaker(node.metadata.speakerName);
 					sm.editor.setSide(node.metadata.side);
 					
 					/* Click on a Node that could be extended */
@@ -1591,7 +1597,7 @@ SpeechMap_Editor.prototype.updateSelectedSpeaker = function(name, logo, color)
 				
 					//Load the selected Node content and metadata into the editor
 					sm.editor.setTextArea(node.content);
-					sm.editor.setSpeaker(node.metadata.speaker);
+					sm.editor.setSpeaker(node.metadata.speakerName);
 					sm.editor.setSide(node.metadata.side);
 				}
 				/* Click on a MetaVertex */
