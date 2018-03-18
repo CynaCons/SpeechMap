@@ -245,7 +245,6 @@
 
 
 	/* Editor Content Tab */
-
 	.button_editorContent_formatText
 	{
 		width:30%;
@@ -297,6 +296,17 @@
 	#button_editor_newSpeaker:hover
 	{
 		background-color: #a0a0a0;
+	}
+	#button_editor_unload
+	{
+		position: relative;
+		left: calc(50% + 10px);
+		height: 24px;
+		width: 24px;
+   		line-height: 24px;
+   	    padding: 0 0.5rem;
+		background-color: #01579B;
+		display: none;
 	}
 	#editor_inputName_containerDiv
 	{
@@ -529,8 +539,11 @@
 				</div>
 				<a class="btn-floating btn-large tooltipped" data-position="right" data-delay="50" 
 					data-tooltip="Register a new speaker" id="button_editor_newSpeaker">
-					
 					<i class="material-icons">add</i>
+				</a>
+				<a class="btn-floating btn-tiny tooltipped" data-position="right" data-delay="50" 
+					data-tooltip="Unselect the speaker" id="button_editor_unload">
+					<i class="material-icons" style="font-size:1em; position: relative;	top: -8px;	left: -7px;" id="button_editor_unloadIcon">clear</i>
 				</a>
 			</div>
 			<div id="div_container_speakersList" class="card-panel">
@@ -1054,6 +1067,10 @@ SpeechMap.prototype.getColorFromSpeakerName = function(speakerName){
   */
  SpeechMap_Editor = function (speakersList, location, date) {
 	console.log("SpeechmapEditorConstructor");
+
+	// Class variable. Is true when one speaker is selected from the list, false otherwise
+	this.selectedSpeakerName = null;
+	this.speakerIsSelected = false;
 	
 	// Add the registered speakers from the loader map to the editor
 	if (speakersList) {
@@ -1099,12 +1116,18 @@ SpeechMap.prototype.getColorFromSpeakerName = function(speakerName){
 			// Retrieve the color for this speaker
 			var color = $("#editorSpeaker_colorPicker").data('colorpicker').color.toHex();
 			
-			
-			// Add the new Speaker to the model
-			sm.metadata.speakersList.push(new Speaker(value, color));
-
 			// DEBUG -- Here we should add the logo
-			sm.editor.addSpeakerInList(value, "logo", color);
+
+			if (sm.editor.speakerIsSelected == false) {
+
+				// Add the new Speaker to the view
+				sm.editor.addSpeakerInList(value, "logo", color);
+				// Add the new Speaker to the model
+				sm.metadata.speakersList.push(new Speaker(value, color));
+			
+			} else {
+				sm.editor.updateSelectedSpeaker(value, "logo", color);
+			}
 		}
 
 		input_field.value = "";
@@ -1140,7 +1163,7 @@ SpeechMap.prototype.getColorFromSpeakerName = function(speakerName){
 		else {
 			var selectedNode = sm.getNodeSelected();
 			selectedNode.content = $("#textarea_editor_nodeContent")[0].value;
-			selectedNode.metadata.speaker.name = $("#select_editor_speaker")[0].value;
+			selectedNode.metadata.speakerName = $("#select_editor_speaker")[0].value;
 			if ($("#radio_editor_left")[0].checked === true){
 				selectedNode.metadata.side = "left";
 			} else {
@@ -1250,7 +1273,13 @@ SpeechMap.prototype.getColorFromSpeakerName = function(speakerName){
 		// Update SM.meta.location
 		sm.metadata.date = $("#editorMetadata_datepicker")[0].value;
 	});
- }
+	
+	// Callback for the "Unload" button of the Speaker tab
+	$("#button_editor_unload").click(function(){
+		sm.editor.unloadSpeakerFromEditor();
+	})
+
+}
  
 SpeechMap_Editor.prototype.setTextArea = function(newContent){
 	// Get the text area and update it's value
@@ -1277,31 +1306,126 @@ SpeechMap_Editor.prototype.setSide = function(newSide) {
 }
 
 SpeechMap_Editor.prototype.addSpeakerInList = function(value, logo, color){
-			// Add the new speaker to the list of registered speakers in the SpeakerTab of the editor
-			var node = document.createElement("li");
-			node.classList.add("collection-item");
-			node.classList.add("avatar");
+	// Add the new speaker to the list of registered speakers in the SpeakerTab of the editor
+	var node = document.createElement("li");
+	node.classList.add("collection-item");
+	node.classList.add("avatar");
 
-			var logo = document.createElement("img");
-			logo.src = "res/default-speaker-logo.png";
-			logo.classList.add("circle");
+	var logo = document.createElement("img");
+	logo.src = "res/default-speaker-logo.png";
+	logo.classList.add("circle");
 
-			var span = document.createElement("span");
-			span.classList.add("title");
-			var textNode = document.createTextNode(value);
-			span.appendChild(textNode);
+	var span = document.createElement("span");
+	span.classList.add("title");
+	var textNode = document.createTextNode(value);
+	span.appendChild(textNode);
 
-			var colorDiv = document.createElement("div");
-			colorDiv.classList.add("speakerList-colorViewer");
-			colorDiv.style.background = color;
+	var colorDiv = document.createElement("div");
+	colorDiv.classList.add("speakerList-colorViewer");
+	colorDiv.style.background = color;
 
-			node.appendChild(logo);
-			node.appendChild(span);
-			node.appendChild(colorDiv);
+	node.appendChild(logo);
+	node.appendChild(span);
+	node.appendChild(colorDiv);
 
-			$("#speakerTab_speakersList")[0].appendChild(node);
+	$("#speakerTab_speakersList")[0].appendChild(node);
+
+
+	// Add callback to the elements of the list
+	$("#speakerTab_speakersList .collection-item").click(function(){
+		$("#speakerTab_speakersList .collection-item").each(function(){
+			this.style.backgroundColor = "#ffffff";
+		});
+		this.style.backgroundColor = "#a2a2a2"
+
+		sm.editor.loadSelectedSpeaker(this);
+	
+	});
+}
+
+
+SpeechMap_Editor.prototype.updateSpeakerInList = function(name, logo, color){
+
+	var speakerList = $("#speakerTab_speakersList")[0].children;
+
+	for (var i = 0; i < speakerList.length; i++){
+		if (speakerList[i].children[1].innerHTML == this.selectedSpeakerName) {
+			
+			// Update the name and the color of the selected speaker
+			speakerList[i].children[1].innerHTML = name;
+			speakerList[i].children[2].style.backgroundColor = color;
+			// Unload the editor
+			this.unloadSpeakerFromEditor(null);
+		}
+	}
+}
+
+SpeechMap_Editor.prototype.loadSelectedSpeaker = function(speakerHtmlObject){
+	// Children layout:
+	// [0] Logo
+	// [1] Name
+	// [2] Color
+	var name = speakerHtmlObject.children[1].innerHTML;
+	var color = speakerHtmlObject.children[2].style.backgroundColor;
+
+	this.switchEditMode("EDIT_MODE_UPDATE", name, color);
+}
+
+
+SpeechMap_Editor.prototype.unloadSpeakerFromEditor = function(htmlObject)
+{
+	this.switchEditMode("EDIT_MODE_ADD", "", "#ffffff");
 }
  
+
+SpeechMap_Editor.prototype.switchEditMode = function(newMode, name, color) {
+	if (newMode == "EDIT_MODE_UPDATE"){ // Switch the speaker panel to "Edit selected speaker" mode
+		
+		// Change the icon
+		$("#button_editor_newSpeaker i")[0].innerHTML = "edit";
+
+		// Make the unload button visible
+		$("#button_editor_unload")[0].style.display = "inline-block";
+
+		// Set the class variable to notify that one speaker is selected
+		this.selectedSpeakerName = name;
+		this.speakerIsSelected = true;
+	} else if (newMode == "EDIT_MODE_ADD") { // Switch the Speaker panel to default mode 
+
+		// Revert the icon to "+"
+		$("#button_editor_newSpeaker i")[0].innerHTML = "add";
+	
+		// Make the unload button hidden
+		$("#button_editor_unload")[0].style.display = "none";
+
+		this.speakerIsSelected = false;
+		this.selectedSpeakerName = "";
+
+		// Remove the visual effect on the list element
+		$("#speakerTab_speakersList .collection-item").each(function(){
+			this.style.backgroundColor = "#ffffff";
+		});
+	}
+	// Set the values into the fields
+	$("#input_editor_newSpeaker")[0].value = name;
+	$("#editorSpeaker_colorPicker").colorpicker("setValue", color);
+}
+
+
+SpeechMap_Editor.prototype.updateSelectedSpeaker = function(name, logo, color)
+{
+	for (var i = 0; i < sm.metadata.speakersList.length; i++){
+		if (sm.metadata.speakersList[i].name == this.selectedSpeakerName) {
+			console.log("DEBUG -- FOUND A MATCH ! ");
+			console.log("DEBUG -- name: " + name);
+			sm.metadata.speakersList[i].name = name;
+			sm.metadata.speakersList[i].color = color;
+			// DEBUG -- Add logo here
+
+			this.updateSpeakerInList(name, logo, color);
+		}
+	}
+}
 
 /*************************************************************************************
  *	SpeechMap_GraphController Class 
