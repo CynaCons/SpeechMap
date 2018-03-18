@@ -358,6 +358,13 @@
 	{
 		background-color: #a0a0a0;
 	}	
+	#button_editor_deleteNode
+	{
+		position: relative;
+		width: 20%;
+		float: right;
+		top: 200px;
+	}
 	#editorMetadata_submitButton
 	{
 		position: relative;
@@ -513,6 +520,10 @@
 					<button id="button_editor_addSaveNode" value="Add node" class="btn light-blue darken-4">
 						Add Node
 					</button>
+					<a class="btn tooltipped light-blue darken-4" data-position="right" data-delay="50" 
+						data-tooltip="Delete the selected node" id="button_editor_deleteNode">
+					<i class="material-icons">delete</i>
+					</a>
 				</div>
 			</div>
 		</div>
@@ -651,6 +662,7 @@ function Node(category, content)
 	this.vertex_extension = null;
 	this.edgesList = [];
 	this.metadata = null;
+	this.id = generateId();
 };
 
 Node.prototype.getSide = function() {
@@ -877,11 +889,14 @@ SpeechMap.prototype.saveContentToFile = function(content) {
 }
 	
 SpeechMap.prototype.makeGraph = function(graph, parent){
+
+	var graphDiv = document.getElementById("graphContainer");
+	var scrollValue = graphDiv.scrollTop;
 	// Make the renderer object render the graph based on the current nodes and metadata.
 	this.renderer.render(graph, parent, this.nodesList, this.metadata);	
 	
 	// Adjust the view of the graph
-	this.graphController.scrollGraphToBottom();
+	this.graphController.scrollGraph(scrollValue);
 };
 
 SpeechMap.prototype.addNode = function (category, content, speakerName, side){
@@ -1028,12 +1043,20 @@ SpeechMap.prototype.setNodeSelected = function(selectedNode) {
 	
 	// Change the text of the Editor button from Add to Update
 	$("#button_editor_addSaveNode")[0].innerHTML = "Update Node";
+	$("#button_editor_addSaveNode")[0].style.width = "78%";
+
+	// Add the "Delete node" button
+	$("#button_editor_deleteNode")[0].style.top = "-22px";
 }
 
 SpeechMap.prototype.unsetNodeSelected = function() {
 	this.nodeSelected_b = false;
 	this.editor.clearTextArea();
 	$("#button_editor_addSaveNode")[0].innerHTML = "Add Node";
+
+	// Remove the "Delete node" button
+	$("#button_editor_deleteNode")[0].style.top = "200px";
+	$("#button_editor_addSaveNode")[0].style.width = "100%";
 
 }
 
@@ -1054,6 +1077,24 @@ SpeechMap.prototype.getColorFromSpeakerName = function(speakerName){
 	}
 	return "#ffffff"; // White is default color
 }
+
+SpeechMap.prototype.deleteNode = function(nodeId) {
+	console.log("DEBUG -- Delete request for the following id" + nodeId);
+
+	for (var i = 0; i < this.nodesList.length; i++) {
+		if (this.nodesList[i].id == nodeId) {
+			console.log("Found a match at index "+ i);
+			this.nodesList.splice(i, 1);
+			this.nodesNumber--;
+
+			console.log(this.nodesNumber);
+			console.log(this.nodesList);
+			this.makeGraph(graph, parent);
+		}
+	}
+}
+
+
 /*************************************************************************************
  *	SpeechMap_Editor Class 
  *	Contains all the Javascript related to the editor on the left side of the page
@@ -1277,7 +1318,12 @@ SpeechMap.prototype.getColorFromSpeakerName = function(speakerName){
 	// Callback for the "Unload" button of the Speaker tab
 	$("#button_editor_unload").click(function(){
 		sm.editor.unloadSpeakerFromEditor();
-	})
+	});
+
+	// Add callback for the "Delete Node" button of the Speaker tab
+	$("#button_editor_deleteNode").click(function(){
+		sm.deleteNode(sm.currentSelectedNode.id);
+	});
 
 }
  
@@ -1672,11 +1718,11 @@ SpeechMap_Editor.prototype.updateSelectedSpeaker = function(name, logo, color)
  }
 
 
- SpeechMap_GraphController.prototype.scrollGraphToBottom = function(){
+ SpeechMap_GraphController.prototype.scrollGraph = function(newValue){
 	console.log("DEBUG -- Scrolling fix");
 	var graphDiv = document.getElementById("graphContainer");
 	console.log(graphDiv);
-	graphDiv.scrollTop = graphDiv.scrollHeight;
+	graphDiv.scrollTop = newValue;
  }
  
 /*************************************************************************************
@@ -2020,6 +2066,16 @@ $ = function(id) {
 			return document.getElementById(id);
 }
 */
+generateId = function() {
+	var d = new Date().getTime();
+    var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = (d + Math.random()*16)%16 | 0;
+        d = Math.floor(d/16);
+        return (c=='x' ? r : (r&0x3|0x8)).toString(16);
+    });
+    return uuid;
+}
+
 /** Main function executed once the page is loaded */
 function main(container){
 
