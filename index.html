@@ -365,17 +365,23 @@
 		float: right;
 		top: 200px;
 	}
-	#editorMetadata_submitButton
+	#editorMetadata_updateButton
 	{
 		position: relative;
 		width: 100%;
-		display: inline-block;
+		display: none;
 	}
-	#editorMetadata_submitButton:hover
+	#editorMetadata_updateButton:hover
 	{
 		background-color: #a0a0a0;
 	}
 	#editorMetadata_containerDiv
+	{
+		position: relative;
+		width: 96%;
+		left: 2%;		
+	}
+	#editorMetadata_globalContainerDiv
 	{
 		position: relative;
 		width: 96%;
@@ -564,7 +570,7 @@
 		</div>
 		<!-- Metadata tab -->
 		<div id="editorContainer_container_tabMetadata" class="editorContainer_container_tab">
-			<div class="card-panel" id="editorMetadata_containerDiv">
+			<div class="card-panel" id="editorMetadata_globalContainerDiv">
 				Select whether information is global or specific to each node
 				<br>
 				<!-- Switch -->
@@ -576,6 +582,8 @@
 					Global
 					</label>
 				</div>
+			</div>
+			<div class="card-panel" id="editorMetadata_containerDiv">			
 				<!-- Location input field -->
 				<div class="input-field col s6">
 					<i class="material-icons prefix">location_on</i>
@@ -588,11 +596,12 @@
 					<input type="text" class="datepicker" id="editorMetadata_datepicker">
 					<label for="editorMetadata_datepicker">Date</label>
 				</div>
-				<button id="editorMetadata_submitButton" value="Update" class="btn light-blue darken-4">
+				<button id="editorMetadata_updateButton" value="Update" class="btn light-blue darken-4">
 					Update
 				</button>
 			</div>
 		</div>
+		<!-- Dev tab -->
 		<div id="editorContainer_container_tabDev" class="editorContainer_container_tab">
 			<div class="card-panel" id="editorDev_devDiv">
 				<input type="button" id="button_addNode_HerrA" value="Add Node Herr A">
@@ -615,6 +624,9 @@
 // TODOList
 
 // TODO -- Remove node
+// TODO -- Add the 'active' class to the labels when loading a value in the editor
+// TODO -- Fix the ":hover" css class for the buttons in the Metadata tab
+// TODO -- Add or update all the tooltips for the button
 
 // PROJECT ARCHITECTURE
 // TDOD -- Split the "index.html" file into three separate files: html, css and javascript
@@ -641,10 +653,12 @@ var NodeCategoryEnum = {
  *	Node_Metadata Class
  *	Contains all the metadata about a specific Node(or vertex) of the map.
  *************************************************************************************/
-function Node_Metadata(speakerName, side)
+function Node_Metadata(speakerName, side, location, date)
 {
 	this.speakerName = speakerName;
 	this.side = side;
+	this.location = location;
+	this.date = date; 
 }
 
 /*************************************************************************************
@@ -693,6 +707,14 @@ function SpeechMap_Metadata() {
  * @param XMLDocument xmlDoc Value null means that the default map will be created, otherwise the map is created based on the data in the xml document.
  */
 function SpeechMap(xmlDoc){	
+
+	// Static variables
+	/* Booleans stored in the SpeechMap object */
+	this.nodeSelected_b = false;
+
+	/* Boolean to determine whether the Node metadata (date, location) should be store globally or locally for each node */
+	this.isNodeMetaGlobal_b = null;
+
 	if (xmlDoc == null) {
 		console.log("Creating the default map");
 		this.metadata = new SpeechMap_Metadata();
@@ -717,10 +739,23 @@ function SpeechMap(xmlDoc){
 			this.metadata.speakersList.push(new Speaker(name, color));
 		}
 		// Build the date and location 
-		// Not sure about the trim() here
-		this.metadata.location = sm_metadata.getElementsByTagName("location")[0].firstChild.nodeValue.trim();
-		this.metadata.date = sm_metadata.getElementsByTagName("date")[0].firstChild.nodeValue.trim();
-		
+		var isNodeMetaGlobal_b_str = sm_metadata.getElementsByTagName("isNodeMetaGlobal_b")[0].firstChild.nodeValue.trim();
+
+		if (isNodeMetaGlobal_b_str == "true"){
+			this.isNodeMetaGlobal_b = true;
+		} else {
+			this.isNodeMetaGlobal_b = false;
+		}
+
+		// Set the node and date globally if enabled. 
+		if (this.isNodeMetaGlobal_b == true){
+			this.metadata.location = sm_metadata.getElementsByTagName("location")[0].firstChild.nodeValue.trim();
+			this.metadata.date = sm_metadata.getElementsByTagName("date")[0].firstChild.nodeValue.trim();
+
+			// The values should be loaded in the editor aswell
+			// This is done in the post-init phase
+		}
+
 		this.nodesNumber = xmlDoc.getElementsByTagName("node").length;
 		this.nodesList = [this.nodesNumber];		
 		
@@ -747,22 +782,24 @@ function SpeechMap(xmlDoc){
 				this.nodesList[i] = new Node(nodeCategory, null);
 			}
 			
-			
 			/* Fill the metadata for the current Node */
 			var metadata = node.getElementsByTagName("metadata")[0];
 			var nodeSide = metadata.getAttribute("side");
-			var speakerName = metadata.getAttribute("speaker");
+			var speakerName = metadata.getAttribute("speakerName");
+			// Default values for location and date in case they are not needed for each node
+			var location = null;
+			var date = null;
+
+			if (this.isNodeMetaGlobal_b == false){
+				location = metadata.getAttribute("location");
+				date = metadata.getAttribute("date");
+			}
 
 			if (speakerName && nodeSide){
-				console.log("OK speakerName:" + speakerName + " nodeSide: "+ nodeSide);
-				this.nodesList[i].metadata = new Node_Metadata(speakerName, nodeSide);
+				this.nodesList[i].metadata = new Node_Metadata(speakerName, nodeSide, location, date);
 			} 
 		}
 	}
-	
-	/* Booleans stored in the SpeechMap object */
-	this.nodeSelected_b = false;
-	
 	
 	/* Instanciate a SpeechMap_Editor class */
 	this.editor = new SpeechMap_Editor(this.metadata.speakersList, this.metadata.location, this.metadata.date);
@@ -774,8 +811,15 @@ function SpeechMap(xmlDoc){
 	this.renderer = new SpeechMap_Renderer();
 
 
-	
+	// A post-init sequence will be called once the sm global object is built
 };
+
+// Function to execute the Post-Initialisation sequence
+// This is required since the function here need a fully built global SpeechMap object
+SpeechMap.prototype.executePostInitSequence = function() {
+	// Request the Metadata mode (either Global or Local)
+	this.editor.requestMetadataMode(this.isNodeMetaGlobal_b);
+}
 	
 // Function serializeToConsole
 SpeechMap.prototype.serializeToConsole = function(){
@@ -819,16 +863,25 @@ SpeechMap.prototype.serializeToXML = function() {
 		speaker_node.setAttribute("color", currentSpeaker.color);
 		metaNode.appendChild(speaker_node);
 	}
-	// Add the <location> and <date> tags
-	var location = this.metadata.location;
-	var location_node = xmlDoc.createElement("location");
-	location_node.appendChild(xmlDoc.createTextNode(location));
-	metaNode.appendChild(location_node);
 
-	var date = this.metadata.date;
-	var date_node = xmlDoc.createElement("date");
-	date_node.appendChild(xmlDoc.createTextNode(date));
-	metaNode.appendChild(date_node);
+	// Add the "isNodeMetaGlobal_b" boolean value to the export (for import compatibility)
+	var value_node = xmlDoc.createElement("isNodeMetaGlobal_b");
+	value_node.appendChild(xmlDoc.createTextNode(this.isNodeMetaGlobal_b));
+	metaNode.appendChild(value_node);
+
+	// If the Node Metadata is global, write it in the sm metadata. Else it will be written for each node
+	if (this.isNodeMetaGlobal_b == true){	
+		// Add the <location> and <date> tags
+		var date = this.metadata.date;
+		var date_node = xmlDoc.createElement("date");
+		date_node.appendChild(xmlDoc.createTextNode(date));
+		metaNode.appendChild(date_node);
+
+		var location = this.metadata.location;
+		var location_node = xmlDoc.createElement("location");
+		location_node.appendChild(xmlDoc.createTextNode(location));
+		metaNode.appendChild(location_node);
+	}
 
 	rootNode.appendChild(metaNode);
 		
@@ -849,11 +902,16 @@ SpeechMap.prototype.serializeToXML = function() {
 		tmpNode.setAttribute("category", categoryString);
 
 		// Create the node content and metadata nodes
-		
 			var metaNode = xmlDoc.createElement("metadata");
 			if (node.metadata){
-				metaNode.setAttribute("speakerName", node.metadata.speaker.name);
+				metaNode.setAttribute("speakerName", node.metadata.speakerName);
 				metaNode.setAttribute("side", node.metadata.side);
+
+				// Store the date on each node if the option has been enabled
+				if (this.isNodeMetaGlobal_b == false){
+					metaNode.setAttribute("date", this.metadata.date);
+					metaNode.setAttribute("location", this.metadata.location);
+				}
 			}
 			tmpNode.appendChild(metaNode);
 		
@@ -1047,6 +1105,12 @@ SpeechMap.prototype.setNodeSelected = function(selectedNode) {
 
 	// Add the "Delete node" button
 	$("#button_editor_deleteNode")[0].style.top = "-22px";
+
+	// If the Node Metadata is set for each node
+	if (this.isNodeMetaGlobal_b == false){
+		// Load the node metadata (date / location) in the Metadata tab. This will also make the visual effects appear
+		this.editor.loadMetadata(selectedNode.metadata.location, selectedNode.metadata.date);
+	}
 }
 
 SpeechMap.prototype.unsetNodeSelected = function() {
@@ -1058,6 +1122,11 @@ SpeechMap.prototype.unsetNodeSelected = function() {
 	$("#button_editor_deleteNode")[0].style.top = "200px";
 	$("#button_editor_addSaveNode")[0].style.width = "100%";
 
+	// If the Node Metadata is set for each node
+	if (this.isNodeMetaGlobal_b == false){
+		// Unload the node metadata (date/location) in the metadata tab. Also hides the visual effects
+		this.editor.unloadMetadata();
+	}
 }
 
 SpeechMap.prototype.getNodeSelected = function() {
@@ -1157,7 +1226,7 @@ SpeechMap.prototype.deleteNode = function(nodeId) {
 			// Retrieve the color for this speaker
 			var color = $("#editorSpeaker_colorPicker").data('colorpicker').color.toHex();
 			
-			// DEBUG -- Here we should add the logo
+			// TODO -- Here we should add the logo
 
 			if (sm.editor.speakerIsSelected == false) {
 
@@ -1306,14 +1375,6 @@ SpeechMap.prototype.deleteNode = function(nodeId) {
 	button_tab_content.className += " editor_tabs_button_active";
 
 	$("#editorContainer_container_tabContent")[0].style.display = "block";
-
-	// Callback for the "Update" button of the Metadata tab
-	$("#editorMetadata_submitButton").click(function(){
-		// Update SM.meta.date
-		sm.metadata.location = $("#editorMetadata_locationInput")[0].value;
-		// Update SM.meta.location
-		sm.metadata.date = $("#editorMetadata_datepicker")[0].value;
-	});
 	
 	// Callback for the "Unload" button of the Speaker tab
 	$("#button_editor_unload").click(function(){
@@ -1325,6 +1386,32 @@ SpeechMap.prototype.deleteNode = function(nodeId) {
 		sm.deleteNode(sm.currentSelectedNode.id);
 	});
 
+	// Callback for the isNodeMetaGlobal_b switch of the Metadata tab
+	$("#editorMetadata_isGlobalCheckbox").on("click", function(){
+		var value = $(this).prop('checked');
+		sm.isNodeMetaGlobal_b = value;
+		
+		var newMode = null;
+		// Set the value for the new Metadata mode
+		sm.editor.requestMetadataMode(sm.isNodeMetaGlobal_b);
+	});
+
+	// Callback for the "Update" button of the Metadata tab
+	$("#editorMetadata_updateButton").on("click", function(){
+		//Retrieve the values from the fields
+		var l_location = $("#editorMetadata_locationInput")[0].value;
+		var l_date = $("#editorMetadata_datepicker")[0].value;
+
+		if (sm.isNodeMetaGlobal_b == true) { // Case: global metadata
+			// Update the global SpeechMap metadata
+			sm.metadata.location = l_location
+			sm.metadata.date = l_date
+		} else { // Case: local metadata
+			// Get the current selected node
+			sm.currentSelectedNode.metadata.location = l_location;
+			sm.currentSelectedNode.metadata.date = l_date;
+		}
+	});
 }
  
 SpeechMap_Editor.prototype.setTextArea = function(newContent){
@@ -1340,11 +1427,6 @@ SpeechMap_Editor.prototype.clearTextArea = function() {
 SpeechMap_Editor.prototype.setSpeaker = function(newSpeaker) {
 	$("#select_editor_speaker").val(newSpeaker);
 	$("#select_editor_speaker").material_select();
-    
-
-	console.log($("#select_editor_speaker")[0]);
-
-	console.log("DEBUG -- Setting speaker to " + newSpeaker);
 }
 
 SpeechMap_Editor.prototype.setSide = function(newSide) {
@@ -1434,7 +1516,7 @@ SpeechMap_Editor.prototype.switchEditMode = function(newMode, name, color) {
 	if (newMode == "EDIT_MODE_UPDATE"){ // Switch the speaker panel to "Edit selected speaker" mode
 		
 		// Change the icon
-		$("#button_editor_newSpeaker i")[0].innerHTML = "edit";
+		$("#button_editor_newSpeaker i")[0].innerHTML = "save";
 
 		// Make the unload button visible
 		$("#button_editor_unload")[0].style.display = "inline-block";
@@ -1468,8 +1550,6 @@ SpeechMap_Editor.prototype.updateSelectedSpeaker = function(name, logo, color)
 {
 	for (var i = 0; i < sm.metadata.speakersList.length; i++){
 		if (sm.metadata.speakersList[i].name == this.selectedSpeakerName) {
-			console.log("DEBUG -- FOUND A MATCH ! ");
-			console.log("DEBUG -- name: " + name);
 			sm.metadata.speakersList[i].name = name;
 			sm.metadata.speakersList[i].color = color;
 			// DEBUG -- Add logo here
@@ -1478,6 +1558,71 @@ SpeechMap_Editor.prototype.updateSelectedSpeaker = function(name, logo, color)
 		}
 	}
 }
+
+// Function to load the date / location
+SpeechMap_Editor.prototype.loadMetadata = function(location, date) {
+
+	// Update the value in the fields and give the labels the active class
+	$("#editorMetadata_locationInput")[0].value = location;
+	$("#editorMetadata_locationInput").next()[0].classList.add("active");
+	
+	$("#editorMetadata_datepicker")[0].value = date;
+	$("#editorMetadata_datepicker").next()[0].classList.add("active");
+
+	// Display the update button
+	this.showMetadataButtons();
+}
+
+SpeechMap_Editor.prototype.unloadMetadata = function() {
+	// Clear the fields and hide the buttons
+	this.clearMetadataFields();
+
+	// Hide the buttons
+	this.hideMetadataButtons();
+
+	// TODO -- Remove the active class for the labels? 
+}
+
+SpeechMap_Editor.prototype.clearMetadataFields = function() {
+	$("#editorMetadata_locationInput")[0].value = "";
+	$("#editorMetadata_datepicker")[0].value = "";
+}
+
+SpeechMap_Editor.prototype.showMetadataButtons = function() {
+	$("#editorMetadata_updateButton")[0].style.display = "inline-block";
+}
+
+SpeechMap_Editor.prototype.hideMetadataButtons = function() {
+	$("#editorMetadata_updateButton")[0].style.display = "none";
+}
+
+SpeechMap_Editor.prototype.requestMetadataMode = function(newMode_b) {
+	var newMode_str = null;
+	
+	if (newMode_b == true){ 
+		newMode_str = "METADATA_MODE_GLOBAL";
+	} else {
+		newMode_str = "METADATA_MODE_LOCAL";
+	}
+
+	this.switchMetadataMode(newMode_str);
+}
+
+SpeechMap_Editor.prototype.switchMetadataMode = function(newMode_str) {
+
+	console.log("DEBUG -- Metadata mode switch :" + newMode_str);
+	if (newMode_str == "METADATA_MODE_GLOBAL") {
+		sm.editor.showMetadataButtons();
+		sm.editor.loadMetadata(sm.metadata.location, sm.metadata.date);
+	} else if (newMode_str == "METADATA_MODE_LOCAL") {
+		sm.editor.clearMetadataFields();
+		sm.editor.hideMetadataButtons();
+	} else {
+		console.log("ERROR -- Unrecognized mode request. Requested value " + newMode);
+	}
+
+}
+
 
 /*************************************************************************************
  *	SpeechMap_GraphController Class 
@@ -2084,7 +2229,7 @@ function main(container){
 	/* Callback function that will be called once the overlay/init is complete. This function will retrieve the SpeechMap instance created by the SMI instance */
 	var smi_initCompleteCallback = function() {
 		sm = smi.getSM();
-		sm.serializeToConsole();
+		sm.executePostInitSequence();
 		sm.makeGraph(graph, parent);
 	};
 	smi = new SpeechMapInitializer(smi_initCompleteCallback);
