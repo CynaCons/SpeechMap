@@ -290,8 +290,9 @@
 	#button_editor_newSpeaker
 	{
 		position: relative;
-		left: calc(50% - 28px);
 		background-color: #01579B;
+		width: 49%;
+		left: 25%;
 	}
 	#button_editor_newSpeaker:hover
 	{
@@ -300,11 +301,7 @@
 	#button_editor_unload
 	{
 		position: relative;
-		left: calc(50% + 10px);
-		height: 24px;
-		width: 24px;
-   		line-height: 24px;
-   	    padding: 0 0.5rem;
+		width: 49%;
 		background-color: #01579B;
 		display: none;
 	}
@@ -554,13 +551,16 @@
 						<input class="file-path validate" type="text"  placeholder="Select speaker logo" disabled>
 					</div>
 				</div>
-				<a class="btn-floating btn-large tooltipped" data-position="right" data-delay="50" 
+				<br>
+				<a class="btn tooltipped" data-position="right" data-delay="50" 
 					data-tooltip="Register a new speaker" id="button_editor_newSpeaker">
-					<i class="material-icons">add</i>
+					<i class="material-icons left">add_circle</i>
+					New
 				</a>
-				<a class="btn-floating btn-tiny tooltipped" data-position="right" data-delay="50" 
+				<a class="btn tooltipped" data-position="right" data-delay="50" 
 					data-tooltip="Unselect the speaker" id="button_editor_unload">
-					<i class="material-icons" style="font-size:1em; position: relative;	top: -8px;	left: -7px;" id="button_editor_unloadIcon">clear</i>
+					<i class="material-icons left" id="button_editor_unloadIcon">clear</i>
+					Clear
 				</a>
 			</div>
 			<div id="div_container_speakersList" class="card-panel">
@@ -1464,9 +1464,13 @@ SpeechMap_Editor.prototype.addSpeakerInList = function(value, logo, color){
 
 	$("#speakerTab_speakersList")[0].appendChild(node);
 
+	// TODO -- This can surely be smoothed. Here we manipulate all the elements of the list, each time...
+
+	// First remove all the already existing callbacks to prevent registering two callbacks for the same item
+	$("#speakerTab_speakersList .collection-item").off("click");
 
 	// Add callback to the elements of the list
-	$("#speakerTab_speakersList .collection-item").click(function(){
+	$("#speakerTab_speakersList .collection-item").on("click", function(){
 		$("#speakerTab_speakersList .collection-item").each(function(){
 			this.style.backgroundColor = "#ffffff";
 		});
@@ -1514,9 +1518,11 @@ SpeechMap_Editor.prototype.unloadSpeakerFromEditor = function(htmlObject)
 
 SpeechMap_Editor.prototype.switchEditMode = function(newMode, name, color) {
 	if (newMode == "EDIT_MODE_UPDATE"){ // Switch the speaker panel to "Edit selected speaker" mode
-		
-		// Change the icon
-		$("#button_editor_newSpeaker i")[0].innerHTML = "save";
+		// Update the text of the "New Speaker" button 
+		$("#button_editor_newSpeaker")[0].innerHTML = "save";
+
+		// Shrink the "New Speaker" button
+		$("#button_editor_newSpeaker")[0].style.left = "0%";
 
 		// Make the unload button visible
 		$("#button_editor_unload")[0].style.display = "inline-block";
@@ -1524,10 +1530,17 @@ SpeechMap_Editor.prototype.switchEditMode = function(newMode, name, color) {
 		// Set the class variable to notify that one speaker is selected
 		this.selectedSpeakerName = name;
 		this.speakerIsSelected = true;
+
+		// Set the "active" class to the Speaker Name field
+		$("#input_editor_newSpeaker").next()[0].classList.add("active");
 	} else if (newMode == "EDIT_MODE_ADD") { // Switch the Speaker panel to default mode 
 
-		// Revert the icon to "+"
-		$("#button_editor_newSpeaker i")[0].innerHTML = "add";
+		// Change back the text of the "New Speaker" button
+		$("#button_editor_newSpeaker")[0].innerHTML = "New";
+
+
+		// Enlarge the "New Speaker" button
+		$("#button_editor_newSpeaker")[0].style.left = "25%";
 	
 		// Make the unload button hidden
 		$("#button_editor_unload")[0].style.display = "none";
@@ -1864,9 +1877,7 @@ SpeechMap_Editor.prototype.switchMetadataMode = function(newMode_str) {
 
 
  SpeechMap_GraphController.prototype.scrollGraph = function(newValue){
-	console.log("DEBUG -- Scrolling fix");
 	var graphDiv = document.getElementById("graphContainer");
-	console.log(graphDiv);
 	graphDiv.scrollTop = newValue;
  }
  
