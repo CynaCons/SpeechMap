@@ -237,7 +237,10 @@
 		list-style-type: none;
 		padding: 0;	
 	}
-
+	#speakerTab_speakersList .active 
+	{
+		background-color: #a2a2a2;
+	}
 	.collection-item
 	{
 		height: 25px;
@@ -542,10 +545,11 @@
 					<div class="file-path-wrapper">
 					  <input type="text" />
 					</div>
-				</div>				<div class="file-field input-field" id="editor_inputFile_containerDiv">
+				</div>				
+				<div class="file-field input-field" id="editor_inputFile_containerDiv">
 					<div class="btn" id="editor_inputFile_buttonDiv">
 						<span>File</span>
-						<input type="file">
+						<input type="file" id="editor_logoInputFile">
 					</div>
 					<div class="file-path-wrapper" id="editor_inputFile_textDiv">
 						<input class="file-path validate" type="text"  placeholder="Select speaker logo" disabled>
@@ -627,6 +631,8 @@
 // TODO -- Add the 'active' class to the labels when loading a value in the editor
 // TODO -- Fix the ":hover" css class for the buttons in the Metadata tab
 // TODO -- Add or update all the tooltips for the button
+// TODO -- Fix bug where the select in the content tab contains too much speakers when updating the existing speakers
+// TODO -- Check what happens when the file input is empty in the speaker tab
 
 // PROJECT ARCHITECTURE
 // TDOD -- Split the "index.html" file into three separate files: html, css and javascript
@@ -640,6 +646,9 @@ function Speaker(speakerName, color)
 {
 	this.name = speakerName;
 	this.color = color;
+
+	// Default speaker logo 
+	this.logo =null;
 }
 
 
@@ -810,6 +819,8 @@ function SpeechMap(xmlDoc){
 	/* Instanciate a SpeechMap_Renderer class */
 	this.renderer = new SpeechMap_Renderer();
 
+	/* Instanciate a SpeechMap_FileManager class, used to read file and save their path for later use */
+	this.fileManager = new SpeechMap_FileManager();
 
 	// A post-init sequence will be called once the sm global object is built
 };
@@ -1147,6 +1158,17 @@ SpeechMap.prototype.getColorFromSpeakerName = function(speakerName){
 	return "#ffffff"; // White is default color
 }
 
+SpeechMap.prototype.getLogoFromSpeakerName = function(speakerName){
+	for(var i = 0; i <  this.metadata.speakersList.length; i++){
+		var speaker = this.metadata.speakersList[i];
+		if(speaker.name == speakerName){
+			return speaker.logo;
+		}
+	}
+	console.log("ERROR - Logo was not found for speaker:" + speakerName);
+	return null; // White is default color
+}
+
 SpeechMap.prototype.deleteNode = function(nodeId) {
 	console.log("DEBUG -- Delete request for the following id" + nodeId);
 
@@ -1195,9 +1217,10 @@ SpeechMap.prototype.deleteNode = function(nodeId) {
 
 			// Get the color for the speaker
 			var color = speakersList[i].color;
+			var logo_base64 = speakersList[i].logo;
 
-			// DEBUG -- Add logo here
-			this.addSpeakerInList(name, "logo", color);
+			// TODO -- Add logo here
+			this.addSpeakerInList(name, logo_base64, color);
 		}
 	}
 
@@ -1226,17 +1249,18 @@ SpeechMap.prototype.deleteNode = function(nodeId) {
 			// Retrieve the color for this speaker
 			var color = $("#editorSpeaker_colorPicker").data('colorpicker').color.toHex();
 			
-			// TODO -- Here we should add the logo
+			// Retrieve the logo file
+			var logoFile = $("#editor_logoInputFile")[0].files[0];
 
 			if (sm.editor.speakerIsSelected == false) {
 
 				// Add the new Speaker to the view
-				sm.editor.addSpeakerInList(value, "logo", color);
+				sm.editor.addSpeakerInList(value, logoFile, color);
 				// Add the new Speaker to the model
 				sm.metadata.speakersList.push(new Speaker(value, color));
 			
 			} else {
-				sm.editor.updateSelectedSpeaker(value, "logo", color);
+				sm.editor.updateSelectedSpeaker(value, logoFile, color);
 			}
 		}
 
@@ -1439,19 +1463,33 @@ SpeechMap_Editor.prototype.setSide = function(newSide) {
 	}
 }
 
-SpeechMap_Editor.prototype.addSpeakerInList = function(value, logo, color){
+SpeechMap_Editor.prototype.addSpeakerInList = function(speakerName, logoFile, color){
 	// Add the new speaker to the list of registered speakers in the SpeakerTab of the editor
 	var node = document.createElement("li");
 	node.classList.add("collection-item");
 	node.classList.add("avatar");
 
+	// Load the default logo. 
 	var logo = document.createElement("img");
 	logo.src = "res/default-speaker-logo.png";
 	logo.classList.add("circle");
 
+	// TODO -- Work to do here in case the logo is exported / imported as base64 value in the xml
+	// If the logoFile argument is not null (at the moment, is only true when adding speakers using the editor)
+	// This will be a big problem if the logo is imported using its base64 value, because during the SpeechMap_loading
+	// the sm global variable does not exist.
+	// A solution would be to save the logoFile and the speakerName and the tag (tag can use the speakerName) and then 
+	// The loading / replacing can be done in the post-init sequence, using all the data saved above
+	if (logoFile != null ) {
+		// Tag this "img" so that the FileManager can replace the image with the loaded one
+		logo.classList.add("update_image_target");
+		// Start the FileManager loading process for the logoFile
+		sm.fileManager.loadFileAndReplace(logoFile, speakerName, "update_image_target");
+	}
+
 	var span = document.createElement("span");
 	span.classList.add("title");
-	var textNode = document.createTextNode(value);
+	var textNode = document.createTextNode(speakerName);
 	span.appendChild(textNode);
 
 	var colorDiv = document.createElement("div");
@@ -1472,17 +1510,16 @@ SpeechMap_Editor.prototype.addSpeakerInList = function(value, logo, color){
 	// Add callback to the elements of the list
 	$("#speakerTab_speakersList .collection-item").on("click", function(){
 		$("#speakerTab_speakersList .collection-item").each(function(){
-			this.style.backgroundColor = "#ffffff";
+			this.classList.remove("active");
 		});
-		this.style.backgroundColor = "#a2a2a2"
+		this.classList.add("active");
 
 		sm.editor.loadSelectedSpeaker(this);
-	
 	});
 }
 
 
-SpeechMap_Editor.prototype.updateSpeakerInList = function(name, logo, color){
+SpeechMap_Editor.prototype.updateSpeakerInList = function(name, logoFile, color){
 
 	var speakerList = $("#speakerTab_speakersList")[0].children;
 
@@ -1492,6 +1529,13 @@ SpeechMap_Editor.prototype.updateSpeakerInList = function(name, logo, color){
 			// Update the name and the color of the selected speaker
 			speakerList[i].children[1].innerHTML = name;
 			speakerList[i].children[2].style.backgroundColor = color;
+
+			// Tag the image to change using a class. It will be changed by the image loading process below
+			$("#speakerTab_speakersList .active img")[0].classList.add("update_image_target");
+			
+			// Read the file and retrieve it's path. Store it in the speaker. Replace the image where the class is set.
+			sm.fileManager.loadFileAndReplace(logoFile, this.selectedSpeakerName, "update_image_target");
+
 			// Unload the editor
 			this.unloadSpeakerFromEditor(null);
 		}
@@ -1550,7 +1594,7 @@ SpeechMap_Editor.prototype.switchEditMode = function(newMode, name, color) {
 
 		// Remove the visual effect on the list element
 		$("#speakerTab_speakersList .collection-item").each(function(){
-			this.style.backgroundColor = "#ffffff";
+			this.classList.remove("active");
 		});
 	}
 	// Set the values into the fields
@@ -1565,6 +1609,7 @@ SpeechMap_Editor.prototype.updateSelectedSpeaker = function(name, logo, color)
 		if (sm.metadata.speakersList[i].name == this.selectedSpeakerName) {
 			sm.metadata.speakersList[i].name = name;
 			sm.metadata.speakersList[i].color = color;
+			sm.metadata.speakersList[i].logo_file = logo;
 			// DEBUG -- Add logo here
 
 			this.updateSpeakerInList(name, logo, color);
@@ -2029,6 +2074,16 @@ SpeechMap_Renderer.prototype.render = function(graph, parent, nodesList, metadat
 
 				var color = sm.getColorFromSpeakerName(node.metadata.speakerName);
 
+				// Get the logo base64 string
+				var speakerLogo = sm.getLogoFromSpeakerName(node.metadata.speakerName);
+
+				// Create the string for the insertVertex function. If the base64 string is null, the default style is used.
+				var speakerLogo_str = "";
+				if (speakerLogo != null ){
+					speakerLogo = speakerLogo.replace("data:image/png;base64", "data:image/png");
+					speakerLogo_str = "image=" + speakerLogo;
+				}
+
 				var y_metaCoord = 10 + i*(this.RENDER_META_SIZE + this.RENDER_META_GAP);
 				if (parseInt(i) > 1 && i < nodesList.length-2 && nodesList[parseInt(i)-1].metadata.speakerName != node.metadata.speakerName)
 				{
@@ -2046,7 +2101,7 @@ SpeechMap_Renderer.prototype.render = function(graph, parent, nodesList, metadat
 				if (nodeSide === "right"){
 					node.vertex = graph.insertVertex(
 								parent, null, node.content, this.RENDER_X_OFFSET + this.RENDER_TREE_GAP + this.RENDER_META_SIZE, y_vertexCoord, 80, 30, 
-								"style_content_speaker_1;whiteSpace=wrap;overflow=hidden;fillColor=" + color
+								"style_content_speaker_1;whiteSpace=wrap;overflow=hidden;fillColor=" + color 
 							);
 
 						// Only add Meta node if the next node is a different speaker OR if is is the last node
@@ -2055,13 +2110,13 @@ SpeechMap_Renderer.prototype.render = function(graph, parent, nodesList, metadat
 							/* Then the metadata vertex linked to the tree (timeline) */
 							node.vertex_treeNode = graph.insertVertex(
 									parent, null, "", this.RENDER_X_OFFSET, g_y_metaCoord + this.RENDER_META_VERTICAL_OFFSET, 30, 30,
-									"style_meta_speaker_1"
+									"style_meta_speaker_1;" + speakerLogo_str
 								);
 						}
 				} else if (nodeSide === "left"){
 					node.vertex = graph.insertVertex(
 								parent, null, node.content,  this.RENDER_X_OFFSET - this.RENDER_TREE_GAP - this.RENDER_VERTEX_WIDTH, y_vertexCoord, 80, 30,
-								"style_content_speaker_2;whiteSpace=wrap;overflow=hidden;fillColor=" + color
+								"style_content_speaker_2;whiteSpace=wrap;overflow=hidden;fillColor=" + color 
 							);
 							
 						// Only add Meta node if the next node is a different speaker  OR if is is the last node (nodesList.length-2 to take into account the end node)
@@ -2070,7 +2125,7 @@ SpeechMap_Renderer.prototype.render = function(graph, parent, nodesList, metadat
 							/* Then the metadata vertex linked to the tree (timeline) */
 							node.vertex_treeNode = graph.insertVertex(
 									parent, null, "", this.RENDER_X_OFFSET, g_y_metaCoord + this.RENDER_META_VERTICAL_OFFSET, 30, 30,
-									"style_meta_speaker_1"
+									"style_meta_speaker_1;" + speakerLogo_str
 								);
 						}
 				}
@@ -2119,6 +2174,41 @@ SpeechMap_Renderer.prototype.clearMap = function(graph){
 	graph.removeCells(graph.getModel().getChildVertices(parent));
 	graph.getModel().endUpdate();
 }
+
+SpeechMap_FileManager = function() {
+
+
+}
+
+// Load file and replace the "src" attribute of the "img" elements which have been tagged with the targetClass_str class.
+SpeechMap_FileManager.prototype.loadFileAndReplace = function(file, speakerName, targetClass_str) {
+			// Start the loading process with the image
+			var reader = new FileReader();
+
+			reader.onload = function(event) {
+				// Replace the image
+				$("." + targetClass_str).attr("src", event.target.result);
+
+				// Remove the class used for tagging
+				$("." + targetClass_str)[0].classList.remove(targetClass_str);
+
+				var speakersList = sm.metadata.speakersList;
+				console.log(speakersList);
+
+				for (var i = 0; i < speakersList.length; i++) {
+					if (speakersList[i].name == speakerName) {
+						speakersList[i].logo = event.target.result;
+					}
+				}
+				sm.makeGraph(graph, parent);			
+			}
+
+			// Start the process which will call the above callback once the image is read
+			reader.readAsDataURL(file);
+
+
+}
+
 
 /*************************************************************************************
  *	SpeechMapInitializer Class 
