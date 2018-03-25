@@ -724,6 +724,8 @@ function SpeechMap(xmlDoc){
 	/* Boolean to determine whether the Node metadata (date, location) should be store globally or locally for each node */
 	this.isNodeMetaGlobal_b = null;
 
+	this.postInit_logoList = [];
+
 	if (xmlDoc == null) {
 		console.log("Creating the default map");
 		this.metadata = new SpeechMap_Metadata();
@@ -742,10 +744,13 @@ function SpeechMap(xmlDoc){
 		// Build the list of speakers
 		var speaker_nodeList = [].slice.call(sm_metadata.getElementsByTagName("speaker"));
 		for ( var i in speaker_nodeList) {
-			var name = speaker_nodeList[i].firstChild.nodeValue.trim();
+			var logo_base64_str = speaker_nodeList[i].firstChild.nodeValue.trim();
+			var name = speaker_nodeList[i].getAttribute("name");
+
 			var color = speaker_nodeList[i].getAttribute("color");
-			console.log("Detected speaker entity :" + name + " and color " + color);
 			this.metadata.speakersList.push(new Speaker(name, color));
+
+			this.postInit_logoList.push({"name": name, "logo" :logo_base64_str});
 		}
 		// Build the date and location 
 		var isNodeMetaGlobal_b_str = sm_metadata.getElementsByTagName("isNodeMetaGlobal_b")[0].firstChild.nodeValue.trim();
@@ -830,6 +835,21 @@ function SpeechMap(xmlDoc){
 SpeechMap.prototype.executePostInitSequence = function() {
 	// Request the Metadata mode (either Global or Local)
 	this.editor.requestMetadataMode(this.isNodeMetaGlobal_b);
+
+	var imageList = $("#speakerTab_speakersList img");
+
+	for (var i = 0; i < this.metadata.speakersList.length; i++) {
+		if (this.metadata.speakersList[i].name == this.postInit_logoList[i].name) {
+
+			this.metadata.speakersList[i].logo = this.postInit_logoList[i].logo;
+
+			// Update the logo in the speakerList of the speaker tab
+			imageList[i].src = this.metadata.speakersList[i].logo;
+		}
+	}
+
+	this.makeGraph(graph, parent);
+
 }
 	
 // Function serializeToConsole
@@ -870,8 +890,9 @@ SpeechMap.prototype.serializeToXML = function() {
 	for (var i in this.metadata.speakersList) {
 		var currentSpeaker = this.metadata.speakersList[i];
 		var speaker_node = xmlDoc.createElement("speaker");
-		speaker_node.appendChild(xmlDoc.createTextNode(currentSpeaker.name));
+		speaker_node.appendChild(xmlDoc.createTextNode(currentSpeaker.logo));
 		speaker_node.setAttribute("color", currentSpeaker.color);
+		speaker_node.setAttribute("name", currentSpeaker.name);
 		metaNode.appendChild(speaker_node);
 	}
 
@@ -1219,8 +1240,8 @@ SpeechMap.prototype.deleteNode = function(nodeId) {
 			var color = speakersList[i].color;
 			var logo_base64 = speakersList[i].logo;
 
-			// TODO -- Add logo here
-			this.addSpeakerInList(name, logo_base64, color);
+			// Second argument must be null. Logo will be replaced in post-init
+			this.addSpeakerInList(name, null, color);
 		}
 	}
 
