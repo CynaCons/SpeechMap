@@ -627,12 +627,14 @@
 
 // TODOList
 
-// TODO -- Remove node
+// DONE -- Remove node
 // TODO -- Add the 'active' class to the labels when loading a value in the editor
 // TODO -- Fix the ":hover" css class for the buttons in the Metadata tab
 // TODO -- Add or update all the tooltips for the button
-// TODO -- Fix bug where the select in the content tab contains too much speakers when updating the existing speakers
-// TODO -- Check what happens when the file input is empty in the speaker tab
+// DONE -- Fix bug where the select in the content tab contains too much speakers when updating the existing speakers
+// DONE -- Check what happens when the file input is empty in the speaker tab
+// DONE -- When the mouse is over a node, the metadata of this node should be displayed as plain text aside the node.
+// TODO -- Nodes on the left side have a weird x coordinate
 
 // PROJECT ARCHITECTURE
 // TDOD -- Split the "index.html" file into three separate files: html, css and javascript
@@ -685,6 +687,7 @@ function Node(category, content)
 	this.vertex_extension = null;
 	this.edgesList = [];
 	this.metadata = null;
+	this.vertex_metadata = null
 	this.id = generateId();
 };
 
@@ -1207,6 +1210,15 @@ SpeechMap.prototype.deleteNode = function(nodeId) {
 }
 
 
+SpeechMap.prototype.getMetadataFromNode = function(node) {
+	// Check if the node metadata are global or local
+	if (this.isNodeMetaGlobal_b == true) {
+		return this.metadata;
+	} else {
+		return node.metadata;
+	}
+}
+
 /*************************************************************************************
  *	SpeechMap_Editor Class 
  *	Contains all the Javascript related to the editor on the left side of the page
@@ -1258,15 +1270,7 @@ SpeechMap.prototype.deleteNode = function(nodeId) {
 		console.log("Button New Speaker");
 		var input_field = document.getElementById("input_editor_newSpeaker");
 		var value = input_field.value;
-		if (value !== ""){
-			var select = document.getElementById("select_editor_speaker");
-			var new_option = document.createElement("option");
-			new_option.value = input_field.value;
-			new_option.innerHTML = input_field.value;
-			select.appendChild(new_option);
-			// Code specific to Materialize css when updating select
-			$('#select_editor_speaker').material_select();
-			
+		if (value !== ""){			
 			// Retrieve the color for this speaker
 			var color = $("#editorSpeaker_colorPicker").data('colorpicker').color.toHex();
 			
@@ -1274,6 +1278,15 @@ SpeechMap.prototype.deleteNode = function(nodeId) {
 			var logoFile = $("#editor_logoInputFile")[0].files[0];
 
 			if (sm.editor.speakerIsSelected == false) {
+
+				// Update the select on the Content tab
+				var select = document.getElementById("select_editor_speaker");
+				var new_option = document.createElement("option");
+				new_option.value = input_field.value;
+				new_option.innerHTML = input_field.value;
+				select.appendChild(new_option);
+				// Code specific to Materialize css when updating select
+				$('#select_editor_speaker').material_select();
 
 				// Add the new Speaker to the view
 				sm.editor.addSpeakerInList(value, logoFile, color);
@@ -1631,11 +1644,12 @@ SpeechMap_Editor.prototype.updateSelectedSpeaker = function(name, logo, color)
 			sm.metadata.speakersList[i].name = name;
 			sm.metadata.speakersList[i].color = color;
 			sm.metadata.speakersList[i].logo_file = logo;
-			// DEBUG -- Add logo here
 
 			this.updateSpeakerInList(name, logo, color);
 		}
 	}
+
+	sm.makeGraph(graph, parent);
 }
 
 // Function to load the date / location
@@ -1898,7 +1912,7 @@ SpeechMap_Editor.prototype.switchMetadataMode = function(newMode_str) {
 			
 			if (cell && cell.isVertex())
 			{
-				if (sm.isContentVertex(cell) && sm.isVertexLabelTruncated(cell))
+				if (sm.isContentVertex(cell))
 				{
 					var node = sm.getMatchingNode(cell);
 					if (node)
@@ -1908,20 +1922,49 @@ SpeechMap_Editor.prototype.switchMetadataMode = function(newMode_str) {
 						// Check to detect when the mouse enters the content cell
 						if (!mouseMove_onCell_previous_b) // Previous move, we were not on a content cell 
 						{
+
 							var vertexGeo = node.vertex.getGeometry();
-							node.vertex_extender = graph.insertVertex(
-									parent, null, "Extend",
-									vertexGeo.x , 
-									vertexGeo.y + vertexGeo.height - 20, 
-									vertexGeo.width, 20, 
-									"style_extendVertex"
-								);
+
+							// Add the vertexExtender to the cell if needed
+							if (sm.isVertexLabelTruncated(cell)){
+								node.vertex_extender = graph.insertVertex(
+										parent, null, "Extend",
+										vertexGeo.x , 
+										vertexGeo.y + vertexGeo.height - 20, 
+										vertexGeo.width, 20, 
+										"style_extendVertex;fontColor=#ffffff;"
+									);
+							}
+
+							// Show the metadata for this node
+							var nodeMetadata = sm.getMetadataFromNode(node);
+							var metaString = nodeMetadata.location + "\n" + nodeMetadata.date;
+							var metaVertex_x = vertexGeo.x;
+
+							// Calculate the position of the metadata vertex
+							// TODO This should be removed, widths are static and so should be the x coordinates of the metaVertex
+							if (node.metadata.side == "left") {
+								metaVertex_x = metaVertex_x - 50;
+							} else {
+								metaVertex_x += vertexGeo.width + 50;
+							}
+
+							// Add the metadata vertex aside the content vertex
+							node.vertex_metadata = graph.insertVertex(
+								parent, null, metaString,
+								metaVertex_x,
+								vertexGeo.y,
+								vertexGeo.heigh,
+								100,
+								"fontColor=#FFFFFF;"
+							);
 								
 							g_mouveMove_lastNode = node;
-							//console.log("Addind a vertex_extender cell");
 						}
 					}
 				} else {
+
+
 					if (!sm.isCellVertexExtender(cell))
 					{
 						g_mouseMove_onCell_b = false;
@@ -1930,11 +1973,10 @@ SpeechMap_Editor.prototype.switchMetadataMode = function(newMode_str) {
 			} else {
 				g_mouseMove_onCell_b = false;
 			}
-			
+
 			if (!g_mouseMove_onCell_b && mouseMove_onCell_previous_b)
 			{
-				graph.removeCells([g_mouveMove_lastNode.vertex_extender]);
-				//console.log("Removing the vertex_extender cell");
+				graph.removeCells([g_mouveMove_lastNode.vertex_extender, g_mouveMove_lastNode.vertex_metadata]);
 			}
 		},
 		mouseUp: function(){}
@@ -2216,6 +2258,7 @@ SpeechMap_FileManager.prototype.loadFileAndReplace = function(file, speakerName,
 				var speakersList = sm.metadata.speakersList;
 				console.log(speakersList);
 
+
 				for (var i = 0; i < speakersList.length; i++) {
 					if (speakersList[i].name == speakerName) {
 						speakersList[i].logo = event.target.result;
@@ -2224,8 +2267,11 @@ SpeechMap_FileManager.prototype.loadFileAndReplace = function(file, speakerName,
 				sm.makeGraph(graph, parent);			
 			}
 
-			// Start the process which will call the above callback once the image is read
-			reader.readAsDataURL(file);
+			// Update logo if one was provided
+			if (file != null){
+				// Start the process which will call the above callback once the image is read
+				reader.readAsDataURL(file);
+			}
 
 
 }
