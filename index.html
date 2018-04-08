@@ -1732,14 +1732,18 @@ SpeechMap_Editor.prototype.switchMetadataMode = function(newMode_str) {
 	/* Add mxCellMarker */
 	var marker = new mxCellMarker(graph);
 	var g_metaShow = false;
-	var g_lastCell; // TODO Should probably be renamed into something like g_mouseClick_metaExtension
+	var g_mouseClick_vertexExtension_vertex; // Contains the last created metaExtension vertex
+	var g_mouseclick_metaVertex_vertex; // Contains the last created metaVertex vertex
+	var g_mouseClick_metaPopup_vertex;
 	var g_mouseMove_onCell_b = false;
 	var g_mouveMove_lastNode = null;
 	
 	var g_mouseClick_vertexExtension_show_b = false; // True is the vertex extension is beeing showm
 	var g_mouseClick_vertexExtension = null;
+	var g_mouseClick_vertexMeta_show_b = false; // True when the metadata for one node is being shown
 	
 	var g_mouseClick_nodeSelected_lastCell = null;
+
 
 	// Add styles for the "Extend" button 
 	var style = new Object();
@@ -1767,23 +1771,37 @@ SpeechMap_Editor.prototype.switchMetadataMode = function(newMode_str) {
 			// Retrieve the cell where click was made.
 			var cell = marker.getCell(me);
 			
-			// Remove the meta popup when clicking aside it.
-			if (g_metaShow === true){
-				if (cell !== g_lastCell){
+			if (cell !== g_mouseClick_metaPopup_vertex){
+
+				// Remove the meta popup when clicking aside
+				if (g_metaShow === true){
 					g_metaShow = false;
-					graph.removeCells([g_lastCell]);
+					graph.removeCells([g_mouseClick_metaPopup_vertex]);
 				}
 			}
-			
+
+
+			/* Remove the vertex_metadata when clicking aside */
+			if (cell !== g_mouseclick_metaVertex_vertex) {
+				if (g_mouseClick_vertexMeta_show_b == true){
+					g_mouseClick_vertexExtension_show_b = false;
+					graph.removeCells([g_mouseClick_metaVertex_vertex]);
+
+					console.log("DEBUG -- Removing the vertex_metadata cell");
+				}
+			}
+
 			// Remove the Vertex Extension when clicking aside of it
 			if (g_mouseClick_vertexExtension_show_b)
 			{
-				if (cell !== g_mouseClick_vertexExtension)
+				if (cell !== g_mouseClick_vertexExtension_vertex)
 				{
 					g_mouseClick_vertexExtension_show_b = null;
-					graph.removeCells([g_mouseClick_vertexExtension]);
+					graph.removeCells([g_mouseClick_vertexExtension_vertex]);
 				}
+				console.log("DEBUG -- Removing the vertexExte cell");
 			}
+
 			// Remove the "node selected" attribute of the SpeechMap when clicking aside of it
 			if (g_mouseClick_nodeSelected_lastCell) {
 				if (cell != g_mouseClick_nodeSelected_lastCell) {
@@ -1836,7 +1854,7 @@ SpeechMap_Editor.prototype.switchMetadataMode = function(newMode_str) {
 									"style_extendedVertex;whiteSpace=wrap;overflow=hidden;"
 								);
 								
-							g_mouseClick_vertexExtension = node.vertex_extension;
+							g_mouseClick_vertexExtension_vertex = node.vertex_extension;
 							
 							// Set the selection to the newly created node
 							marker.markCell(node.vertex_extension);
@@ -1870,6 +1888,35 @@ SpeechMap_Editor.prototype.switchMetadataMode = function(newMode_str) {
 					if (graph.isLabelClipped(cell) && sm.isVertexLabelTruncated(cell)){
 						console.log("Clicked on a vertex that needs to be extended");
 					}
+
+					// Show the metadata for this node
+					var vertexGeo = node.vertex.getGeometry();
+					var nodeMetadata = sm.getMetadataFromNode(node);
+					var metaString = nodeMetadata.location + "\n" + nodeMetadata.date;
+					var metaVertex_x = vertexGeo.x;
+					g_mouseClick_vertexMeta_show_b = true;
+
+					// Calculate the position of the metadata vertex
+					// TODO This should be removed, widths are static and so should be the x coordinates of the metaVertex
+					if (node.metadata.side == "left") {
+						metaVertex_x = metaVertex_x - 50;
+					} else {
+						metaVertex_x += vertexGeo.width + 50;
+					}
+
+					// Add the metadata vertex aside the content vertex
+					node.vertex_metadata = graph.insertVertex(
+						parent, null, metaString,
+						metaVertex_x,
+						vertexGeo.y,
+						vertexGeo.heigh,
+						100,
+						"fontColor=#FFFFFF;"
+					);
+
+					console.log("DEBUG -- Saving the node for later deleting");
+					g_mouseClick_metaVertex_vertex = node.vertex_metadata;
+								
 				}
 				// Click on the extension of a vertex
 				else if (sm.isCellVertexExtension(cell)) {
@@ -1884,6 +1931,8 @@ SpeechMap_Editor.prototype.switchMetadataMode = function(newMode_str) {
 					sm.editor.setSpeaker(node.metadata.speakerName);
 					sm.editor.setSide(node.metadata.side);
 				}
+
+
 				/* Click on a MetaVertex */
 				else if (sm.isMetaVertex(cell)){
 					console.log("Meta vertex clicked");
@@ -1893,8 +1942,8 @@ SpeechMap_Editor.prototype.switchMetadataMode = function(newMode_str) {
 						// TODO Clean the scale factor (use a global or something constant)
 						var x_popupCoord = geo.x + (geo.width / 2) - (geo.width * 5 / 2);
 						var y_popupCoord = geo.y + (geo.height / 2) - (geo.height * 5 / 2);
-						g_lastCell = graph.insertVertex(parent, null, "", x_popupCoord, y_popupCoord, geo.width * 5, geo.height * 5);	
-						// TODO Set the current selection to the g_lastCell instead of the cell that was clicked
+						g_mouseClick_metaPopup_vertex = graph.insertVertex(parent, null, "", x_popupCoord, y_popupCoord, geo.width * 5, geo.height * 5);	
+						// TODO Set the current selection to the g_mouseClick_metaPopup_vertex instead of the cell that was clicked
 					}
 				}
 			}
@@ -1903,13 +1952,7 @@ SpeechMap_Editor.prototype.switchMetadataMode = function(newMode_str) {
 		mouseMove: function(graph, me){
 			var cell = marker.getCell(me);
 			var mouseMove_onCell_previous_b = g_mouseMove_onCell_b;
-		
-			// TODO Remove, only used for tracing purposes
-			if (cell && sm.isCellVertexExtender(cell))
-			{
-				//console.log("Cell is a vertex_extender");
-			}
-			
+
 			if (cell && cell.isVertex())
 			{
 				if (sm.isContentVertex(cell))
@@ -1919,9 +1962,13 @@ SpeechMap_Editor.prototype.switchMetadataMode = function(newMode_str) {
 					{
 						g_mouseMove_onCell_b = true; // We are on a content cell
 
+
+
 						// Check to detect when the mouse enters the content cell
 						if (!mouseMove_onCell_previous_b) // Previous move, we were not on a content cell 
 						{
+
+							g_mouveMove_lastNode = node; // Save the current node for later
 
 							var vertexGeo = node.vertex.getGeometry();
 
@@ -1936,30 +1983,7 @@ SpeechMap_Editor.prototype.switchMetadataMode = function(newMode_str) {
 									);
 							}
 
-							// Show the metadata for this node
-							var nodeMetadata = sm.getMetadataFromNode(node);
-							var metaString = nodeMetadata.location + "\n" + nodeMetadata.date;
-							var metaVertex_x = vertexGeo.x;
 
-							// Calculate the position of the metadata vertex
-							// TODO This should be removed, widths are static and so should be the x coordinates of the metaVertex
-							if (node.metadata.side == "left") {
-								metaVertex_x = metaVertex_x - 50;
-							} else {
-								metaVertex_x += vertexGeo.width + 50;
-							}
-
-							// Add the metadata vertex aside the content vertex
-							node.vertex_metadata = graph.insertVertex(
-								parent, null, metaString,
-								metaVertex_x,
-								vertexGeo.y,
-								vertexGeo.heigh,
-								100,
-								"fontColor=#FFFFFF;"
-							);
-								
-							g_mouveMove_lastNode = node;
 						}
 					}
 				} else {
@@ -1976,7 +2000,7 @@ SpeechMap_Editor.prototype.switchMetadataMode = function(newMode_str) {
 
 			if (!g_mouseMove_onCell_b && mouseMove_onCell_previous_b)
 			{
-				graph.removeCells([g_mouveMove_lastNode.vertex_extender, g_mouveMove_lastNode.vertex_metadata]);
+				graph.removeCells([g_mouveMove_lastNode.vertex_extender]);
 			}
 		},
 		mouseUp: function(){}
